@@ -2,7 +2,7 @@ package org.beer30.realworld.config;
 
 import java.util.List;
 
-import org.beer30.realworld.config.org.beer30.realworld.utils.AppInfo;
+import org.beer30.realworld.utils.AppInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

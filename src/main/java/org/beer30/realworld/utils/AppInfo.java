@@ -1,4 +1,4 @@
-package org.beer30.realworld.config.org.beer30.realworld.utils;
+package org.beer30.realworld.utils;
 
 import java.io.IOException;
 import java.util.Properties;
