@@ -1,6 +1,5 @@
 package org.beer30.realworld.controller;
 
-import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,7 @@ public class UsersControllerTest {
 
     Gson gson = new Gson();
 
+  
     @Test
     void testAuthenticateUser() throws Exception {
         // /api/users/login

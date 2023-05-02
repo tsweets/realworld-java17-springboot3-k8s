@@ -12,5 +12,13 @@ public interface UserService {
      * @return newly created User
      */
     public User createUser(UserRegistrationDTO userRegistrationDTO);
+
+    /**
+     * Lookup a User by their email 
+     * 
+     * @param email email to lookup by
+     * @return user found
+     */
+    public User findUserByEmail(String email);
     
 }

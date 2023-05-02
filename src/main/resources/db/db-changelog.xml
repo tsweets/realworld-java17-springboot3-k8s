@@ -12,7 +12,7 @@
             <constraints nullable="false" />
          </column>
          <column name="email" type="varchar(50)">
-            <constraints nullable="true" />
+            <constraints nullable="false" unique="true" />
          </column>
          <column name="image_url" type="varchar(255)"/>
          <column name="bio" type="varchar(255)"/>

@@ -2,7 +2,7 @@ package org.beer30.realworld.service;
 
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
-import org.beer30.realworld.service.repository.UserRepository;
+import org.beer30.realworld.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +28,18 @@ public class UserServiceImpl implements UserService {
 
         return userCreated;
     }
+
+    @Override
+    public User findUserByEmail(String email) {
+        log.info("Service Call: Find by email - {}", email);
+
+        User user = userRepository.findByEmail(email);
+        log.info("Returning User: {}", user);
+        
+        return user;
+    }
+
+    
     
     
 }

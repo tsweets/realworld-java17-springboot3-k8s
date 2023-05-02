@@ -5,6 +5,7 @@ import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.service.TokenService;
 import org.beer30.realworld.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,9 @@ public class UsersController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    TokenService tokenService;
+
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "User Authentication", description = "Authenticate a user via oauth2")
@@ -42,6 +46,15 @@ public class UsersController {
         log.info("REST (post): /api/users/login ");
         String passwordMasked = StringUtils.repeat("*", dto.getPassword().length());
         log.info("Username: {} - Password: {}", dto.getEmail(), passwordMasked);
+
+        User user = userService.findUserByEmail(dto.getEmail());
+
+        if (user == null) {
+            // Do Something - figure out the code to return
+        } 
+
+        String token = tokenService.generateToken(user);
+        
 
         return new UserDTO();
     }
