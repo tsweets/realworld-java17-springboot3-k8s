@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Service
 public class TokenService {
@@ -21,9 +22,9 @@ public class TokenService {
     @Autowired
     JwtEncoder jwtEncoder;
 
-   // private final JwtEnco
-   
-   // offical backend does this   jwt.sign(user, process.env.JWT_SECRET || 'superSecret', { expiresIn: '60d' });
+    // private final JwtEnco
+
+    // offical backend does this   jwt.sign(user, process.env.JWT_SECRET || 'superSecret', { expiresIn: '60d' });
    /*
     * Using Real App 
     {
@@ -63,29 +64,32 @@ public class TokenService {
 }
 }
      */
-   public String generateToken(User user) {
+    public String generateToken(User user) {
         Instant now = Instant.now();
         // String scope = authentication.getAuthorities().stream()
         //     .map(GrantedAuthority::getAuthority)
         //     .collect(Collectors.joining(" "));
         JwtClaimsSet claims = JwtClaimsSet.builder()
-            .issuer("self")
-            .issuedAt(now)
-            .expiresAt(now.plus(60, ChronoUnit.DAYS))
-            .subject(user.getEmail())
-            .claim("email", user.getEmail())
-            .claim("username", user.getUsername())
-            .build();
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(60, ChronoUnit.DAYS))
+                .subject(user.getEmail())
+                .claim("email", user.getEmail())
+                .claim("username", user.getUsername())
+                .build();
 
         JwsHeader jwsHeader = JwsHeader.with(() -> "HS256").build();
         String encodedString = jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
-        
-        return encodedString;
-   }
 
-   public Jwt decodeToken(String token) {
+        return encodedString;
+    }
+
+    public Jwt decodeToken(String token) {
+        if (StringUtils.hasText(token) && token.startsWith("Token ")) {
+            token = token.substring(6);
+        }
         Jwt jwt = jwtDecoder.decode(token);
 
         return jwt;
-   }
+    }
 }

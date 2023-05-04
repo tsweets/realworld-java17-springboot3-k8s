@@ -23,10 +23,10 @@ import io.swagger.v3.oas.models.servers.Server;
 public class OpenAPIConfig {
 
     //@Value("${realworld.openapi.dev-url}")
-    private String devUrl = "foo";
+    private final String devUrl = "foo";
 
     //@Value("${realworld.openapi.prod-url}")
-    private String prodUrl = "bar";
+    private final String prodUrl = "bar";
  
     @Bean
     public OpenAPI myOpenAPI() {

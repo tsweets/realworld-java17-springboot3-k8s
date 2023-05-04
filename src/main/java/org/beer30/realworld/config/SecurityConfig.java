@@ -33,7 +33,7 @@ public class SecurityConfig {
 
     @Bean
     JwtEncoder jwtEncoder() {
-        SecretKey secretKey = new SecretKeySpec(sharedSecretValue.getBytes(),"HmacSHA256");
+        SecretKey secretKey = new SecretKeySpec(sharedSecretValue.getBytes(), "HmacSHA256");
         JWKSource<SecurityContext> immutableSecret = new ImmutableSecret<SecurityContext>(secretKey);
 
         return new NimbusJwtEncoder(immutableSecret);
@@ -41,45 +41,34 @@ public class SecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        SecretKey secretKey = new SecretKeySpec(sharedSecretValue.getBytes(),"HmacSHA256");
+        SecretKey secretKey = new SecretKeySpec(sharedSecretValue.getBytes(), "HmacSHA256");
 
         return NimbusJwtDecoder.withSecretKey(secretKey).build();
     }
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
-        return new AuthTokenFilter();
+        AuthTokenFilter authTokenFilter = new AuthTokenFilter();
+        return authTokenFilter;
     }
-    AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
+
+    AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED); //Code 401
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-    
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests((requests) -> requests
-                    .requestMatchers("/api/users/*", "/home").permitAll()
-                    .requestMatchers("/api/user/*").authenticated()
-                    .anyRequest().authenticated()
-            ) 
-            
-       //     .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling((exceptionHandling) ->
-                    exceptionHandling
-                    .authenticationEntryPoint(authenticationEntryPoint))
-       //             .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()))
-    //        .httpBasic(withDefaults())
-        //    .exceptionHandling().authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-        ;
-        // http.exceptionHandling((exceptionHandling) ->
-        //             exceptionHandling
-        //             .authenticationEntryPoint(authenticationEntryPoint));
-                   
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/api/users/*", "/home").permitAll()
+                        .requestMatchers("/api/user").authenticated()
+                        .anyRequest().denyAll()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling((exceptionHandling) ->
+                        exceptionHandling
+                                .authenticationEntryPoint(authenticationEntryPoint));
+
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
-
-}
-
-
-    
+    }
 }

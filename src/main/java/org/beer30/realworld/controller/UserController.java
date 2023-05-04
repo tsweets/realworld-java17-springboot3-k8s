@@ -1,18 +1,21 @@
 package org.beer30.realworld.controller;
 
 import org.beer30.realworld.domain.UserDTO;
+import org.beer30.realworld.model.User;
+import org.beer30.realworld.service.TokenService;
+import org.beer30.realworld.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
+
+import java.security.Principal;
 
 
 /*
@@ -29,18 +32,28 @@ public class UserController {
     Returns UserDTO
     */
 
-    @GetMapping("/")
+    @Autowired
+    TokenService tokenService;
+
+    @Autowired
+    UserService userService;
+
+    @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @Operation(description = "Get Current User")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Found User")
     })
-    public UserDTO getCurrentUser() {
+    public UserDTO getCurrentUser(@RequestHeader (name="Authorization") String token) {
         log.info("REST (get): /api/user/");
-        
+        log.info("Token: {}", token);
+        String username = tokenService.decodeToken(token).getSubject();
+        log.info("User: {}",username );
 
-        return null;
+        User user = userService.findUserByEmail(username);
+        UserDTO dto = user.toDto();
 
+        return dto;
     }
 
     @PutMapping("/")

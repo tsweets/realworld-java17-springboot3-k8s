@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.beer30.realworld.domain.UserDTO;
 
 @Entity
 @Table(name = "app_user") // NOTE: "user" is a keyword for some DBs, so don't use
@@ -29,5 +30,9 @@ public class User {
     private String imageUrl;
     private String bio;
     
-    
+
+    public UserDTO toDto() {
+        UserDTO dto = UserDTO.builder().username(this.getUsername()).email(this.getEmail()).bio(this.getBio()).image(this.imageUrl).build();
+        return dto;
+    }
 }

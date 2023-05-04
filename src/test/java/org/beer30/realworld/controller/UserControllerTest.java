@@ -83,22 +83,20 @@ public class UserControllerTest {
 
 
         // Test without Token (should error)
-        MvcResult resultNoToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user")
-              //  .content(gson.toJson(userLoginDTO))
-              //  .contentType(MediaType.APPLICATION_JSON))
-            ).andExpect(MockMvcResultMatchers.status().isUnauthorized())
-            .andDo(MockMvcResultHandlers.print())
-            .andReturn();
+        MvcResult resultNoToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user"))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
 
         // Add the token and should work now
         MvcResult resultWithToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user")
-           //     .header("Authorization", "Token" + token)
-                .header("Authorization", "Bearer " + token)
-             //   .content(gson.toJson(userLoginDTO))
-          //      .contentType(MediaType.APPLICATION_JSON))
-            ).andExpect(MockMvcResultMatchers.status().isOk())
-            .andDo(MockMvcResultHandlers.print())
-            .andReturn();
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value("foouser"))
+                .andReturn();
 
     }
     

@@ -11,7 +11,7 @@ public interface UserService {
      * @param userRegistrationDTO user to create
      * @return newly created User
      */
-    public User createUser(UserRegistrationDTO userRegistrationDTO);
+    User createUser(UserRegistrationDTO userRegistrationDTO);
 
     /**
      * Lookup a User by their email 
@@ -19,6 +19,6 @@ public interface UserService {
      * @param email email to lookup by
      * @return user found
      */
-    public User findUserByEmail(String email);
+    User findUserByEmail(String email);
     
 }

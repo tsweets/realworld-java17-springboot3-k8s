@@ -68,10 +68,7 @@ public class UsersController {
 
             String token = tokenService.generateToken(user);
 
-            userDTO.setUsername(user.getUsername());
-            userDTO.setEmail(user.getEmail());
-            userDTO.setBio(user.getBio());
-            userDTO.setImage(user.getImageUrl());
+            userDTO = user.toDto();
             userDTO.setToken(token);
         }
 
