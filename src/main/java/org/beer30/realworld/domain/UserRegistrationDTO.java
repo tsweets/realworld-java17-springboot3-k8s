@@ -1,5 +1,6 @@
 package org.beer30.realworld.domain;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +20,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder 
 public class UserRegistrationDTO {
+    @NotNull
     String username;
+    @NotNull
     String email;
+    @NotNull
     String password;
 }

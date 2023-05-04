@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
 
 /*
@@ -19,7 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 		@OAuthScope(name = "write:pets", description = "modify pets in your account"),
 		@OAuthScope(name = "read:pets", description = "read your pets") })))
  */
-
+@Slf4j
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -35,7 +36,10 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = "Found User")
     })
     public UserDTO getCurrentUser() {
-      return null;
+        log.info("REST (get): /api/user/");
+        
+
+        return null;
 
     }
 
@@ -46,6 +50,7 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = "User Updated")
     })
     public UserDTO updateUser(@RequestBody UserDTO dto) {
+      
 
       return null;
     }
