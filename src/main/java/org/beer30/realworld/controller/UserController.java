@@ -56,16 +56,25 @@ public class UserController {
         return dto;
     }
 
-    @PutMapping("/")
+    @PutMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @Operation(description = "Update User")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User Updated")
     })
-    public UserDTO updateUser(@RequestBody UserDTO dto) {
-      
+    public UserDTO updateUser(@RequestBody UserDTO dto, @RequestHeader (name="Authorization") String token) {
+        log.info("REST (put): /api/user/");
+        log.info("Token: {}", token);
+        String username = tokenService.decodeToken(token).getSubject();
+        log.info("User: {}",username );
 
-      return null;
+        User user = userService.findUserByEmail(dto.getEmail());
+        user.setBio(dto.getBio());
+        user.setImageUrl(dto.getImage());
+
+        User userUpdated = userService.updateUser(user);
+
+        return userUpdated.toDto();
     }
 
 }

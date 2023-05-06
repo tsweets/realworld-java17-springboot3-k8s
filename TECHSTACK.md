@@ -1,2 +1,8 @@
 - Swagger
 - Junit 5
+- Java Faker
+- GSON
+- Liquibase
+- MockMVC
+- OAuth2/Spring Security
+- OpenAPI 3

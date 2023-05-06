@@ -37,7 +37,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "user api", description = "Unauthenticated User API")
+@Tag(name = "users api", description = "Unauthenticated User API")
 public class UsersController {
 
     @Autowired

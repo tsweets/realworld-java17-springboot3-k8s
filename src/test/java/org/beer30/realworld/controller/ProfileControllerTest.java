@@ -1,15 +1,17 @@
 package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
+import com.google.gson.Gson;
+import org.beer30.realworld.domain.ProfileDTO;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.repository.UserRepository;
 import org.beer30.realworld.service.UserService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,15 +27,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.google.gson.Gson;
-
 import java.time.Instant;
 
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UserControllerTest {
+public class ProfileControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -47,6 +47,9 @@ public class UserControllerTest {
     @Autowired
     UserService userService;
 
+    @Autowired
+    UserRepository userRepository;
+
     Gson gson = new Gson();
 
     Faker faker = new Faker();
@@ -57,6 +60,7 @@ public class UserControllerTest {
           .addFilter(springSecurityFilterChain).build();
     }
     // "/api/user" get current user
+/*
     @Test
     public void getCurrentUserTest() throws Exception {
         // Create Test User
@@ -105,15 +109,15 @@ public class UserControllerTest {
                 .andReturn();
 
     }
+*/
 
     @Test
-    public void updateUserTest() throws Exception {
+    public void getUserProfileTest() throws Exception {
         String testUserName = faker.name().lastName() + Instant.now().toEpochMilli();
         String email = testUserName + "@example.com";
         String password = "password" + faker.internet().password(4,5);
 
 
-        //    public UserDTO updateUser(@RequestBody UserDTO dto) {
         // Create Test User
         UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
                 .email(email)
@@ -121,33 +125,40 @@ public class UserControllerTest {
                 .password(password)
                 .build();
 
-        User userCreated = userService.createUser(userRegistrationDTO);
-        Assert.assertNotNull(userCreated);
+        User requestingUser = userService.createUser(userRegistrationDTO);
+        Assert.assertNotNull(requestingUser);
 
-        UserDTO userDTOUpdate = userCreated.toDto();
-        Assert.assertNull(userCreated.getBio());
+        // Create user for the profile to return
+        String pUserName = faker.name().lastName() + Instant.now().toEpochMilli();
+        String pEmail = pUserName + "@example.com";
+        String pPassword = "password" + faker.internet().password(4,5);
+        String pBio = faker.chuckNorris().fact().replace("Chuck Norris", pUserName);
+        User user = User.builder()
+                .email(pEmail)
+                .username(pUserName)
+                .password(pPassword)
+                .bio(pBio)
+                .build();
+        User pUser = userRepository.save(user);
+        Assert.assertNotNull(pUser);
 
-        String bio = faker.chuckNorris().fact().replace("Chuck Norris", testUserName);
-
-        userDTOUpdate.setBio(bio);
-
+        // Token for requesting user
         String token = this.getToken(email, password);
         // Update user
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.put("/api/user")
-                        .content(gson.toJson(userDTOUpdate))
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/profiles/{user}", pUserName)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(testUserName))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(pUserName))
                 .andReturn();
 
-        UserDTO userUpdated = gson.fromJson(result.getResponse().getContentAsString(),UserDTO.class);
-        Assert.assertNotNull(userUpdated);
-        Assert.assertEquals(bio, userUpdated.getBio());
+        ProfileDTO profileDTO = gson.fromJson(result.getResponse().getContentAsString(),ProfileDTO.class);
+        Assert.assertNotNull(profileDTO);
+        Assert.assertEquals(pBio, profileDTO.getBio());
 
-        System.out.println("BIO: " + userUpdated.getBio());
+        System.out.println("Profile: " + profileDTO);
 
 
 

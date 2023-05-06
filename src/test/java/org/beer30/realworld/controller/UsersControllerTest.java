@@ -82,16 +82,5 @@ public class UsersControllerTest {
         .andDo(MockMvcResultHandlers.print())
         .andReturn();    
 
-/*
- * @Test
-public void givenHomePageURI_whenMockMVC_thenReturnsIndexJSPViewName() {
-    this.mockMvc.perform(get("/homePage")).andDo(print())
-      .andExpect(view().name("index"));
-}
-.andExpect(MockMvcResultMatchers.model().attribute("welcome",
-                        "Welcome , Geeks to the world of programming!!!")) // sent attribute and its value check
- */
-
-
     }
 }

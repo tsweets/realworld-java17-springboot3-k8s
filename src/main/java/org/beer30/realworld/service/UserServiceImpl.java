@@ -1,5 +1,6 @@
 package org.beer30.realworld.service;
 
+import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.repository.UserRepository;
@@ -30,6 +31,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User updateUser(User user) {
+        log.info("Service Call: Update User - {}", user);
+
+        User updatedUser = userRepository.save(user);
+        return updatedUser;
+    }
+
+    @Override
     public User findUserByEmail(String email) {
         log.info("Service Call: Find by email - {}", email);
 
@@ -39,7 +48,13 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    
-    
-    
+    @Override
+    public User findUserByUsername(String username) {
+        log.info("Service Call: Find by Username - {}", username);
+
+        User user = userRepository.findByUsername(username);
+        log.info("Returning User: {}", user);
+
+        return user;
+    }
 }
