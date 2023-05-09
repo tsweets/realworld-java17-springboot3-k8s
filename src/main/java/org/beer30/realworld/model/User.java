@@ -1,16 +1,16 @@
 package org.beer30.realworld.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.beer30.realworld.domain.UserDTO;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "app_user") // NOTE: "user" is a keyword for some DBs, so don't use
@@ -29,6 +29,12 @@ public class User {
     private String email;
     private String imageUrl;
     private String bio;
+    @ManyToMany
+    @JoinTable(
+            name = "following",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id"))
+    Set<User> following = new HashSet<>();
     
 
     public UserDTO toDto() {

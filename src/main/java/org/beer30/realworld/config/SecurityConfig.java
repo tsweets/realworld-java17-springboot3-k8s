@@ -60,7 +60,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/users/*", "/home").permitAll()
-                        .requestMatchers("/api/user", "/api/profiles/*").authenticated()
+                        .requestMatchers("/api/user", "/api/profiles/**").authenticated()
                         .anyRequest().denyAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -59,57 +59,6 @@ public class ProfileControllerTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
           .addFilter(springSecurityFilterChain).build();
     }
-    // "/api/user" get current user
-/*
-    @Test
-    public void getCurrentUserTest() throws Exception {
-        // Create Test User
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
-                .email("foo@example.com")
-                .username("foouser")
-                .password("password")
-                .build();
-        
-        User userCreated = userService.createUser(userRegistrationDTO);
-        Assert.assertNotNull(userCreated);
-
-        // Login and get token
-        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
-            .email("foo@example.com")
-            .password("password")
-            .build();
-
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
-                .content(gson.toJson(userLoginDTO))
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andDo(MockMvcResultHandlers.print())
-            .andReturn();
-        
-        UserDTO dto = gson.fromJson(result.getResponse().getContentAsString(), UserDTO.class);
-        System.out.println(dto);
-        String token = dto.getToken();
-        Assert.assertNotNull(token);
-
-
-        // Test without Token (should error)
-        MvcResult resultNoToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user"))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                .andDo(MockMvcResultHandlers.print())
-                .andReturn();
-
-        // Add the token and should work now
-        MvcResult resultWithToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Token " + token))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value("foouser"))
-                .andReturn();
-
-    }
-*/
 
     @Test
     public void getUserProfileTest() throws Exception {
@@ -164,6 +113,74 @@ public class ProfileControllerTest {
 
     }
 
+    @Test
+    public void followUserTest() throws Exception {
+        String requestingUserName = faker.name().lastName() + Instant.now().toEpochMilli();
+        String requestingEmail = requestingUserName + "@example.com";
+        String requestingPassword = "password" + faker.internet().password(4,5);
+
+
+        // Create Test User (Requesting)
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .email(requestingEmail)
+                .username(requestingUserName)
+                .password(requestingPassword)
+                .build();
+
+        User requestingUser = userService.createUser(userRegistrationDTO);
+        Assert.assertNotNull(requestingUser);
+
+        // Create user for the profile to return
+        String pUserName = faker.name().lastName() + Instant.now().toEpochMilli();
+        String pEmail = pUserName + "@example.com";
+        String pPassword = "password" + faker.internet().password(4,5);
+        String pBio = faker.chuckNorris().fact().replace("Chuck Norris", pUserName);
+        User user = User.builder()
+                .email(pEmail)
+                .username(pUserName)
+                .password(pPassword)
+                .bio(pBio)
+                .build();
+        User pUser = userRepository.save(user);
+        Assert.assertNotNull(pUser);
+
+        // Token for requesting user
+        String token = this.getToken(requestingEmail, requestingPassword);
+
+        // Follow user
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/profiles/{puser}/follow", pUserName)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+
+        ProfileDTO profileDTO = gson.fromJson(result.getResponse().getContentAsString(),ProfileDTO.class);
+        Assert.assertNotNull(profileDTO);
+        Assert.assertEquals(pBio, profileDTO.getBio());
+
+        System.out.println("Profile: " + profileDTO);
+        Assert.assertEquals(true,profileDTO.getFollowing());
+        Assert.assertEquals(pUserName, profileDTO.getUsername());
+
+        // Now un-follow that chap
+        MvcResult resultUnfollow = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/profiles/{puser}/follow", pUserName)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+
+        ProfileDTO profileDTOUnfollowed = gson.fromJson(resultUnfollow.getResponse().getContentAsString(),ProfileDTO.class);
+        Assert.assertNotNull(profileDTOUnfollowed);
+
+        System.out.println("Profile: " + profileDTOUnfollowed);
+        Assert.assertEquals(false,profileDTOUnfollowed.getFollowing());
+        Assert.assertEquals(pUserName, profileDTOUnfollowed.getUsername());
+
+
+
+    }
     private String getToken(String email, String password) throws Exception {
         UserLoginDTO userLoginDTO = UserLoginDTO.builder().email(email).password(password).build();
 

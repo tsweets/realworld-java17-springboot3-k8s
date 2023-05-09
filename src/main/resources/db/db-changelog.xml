@@ -17,6 +17,14 @@
          <column name="image_url" type="varchar(255)"/>
          <column name="bio" type="varchar(255)"/>
       </createTable>
-      <addAutoIncrement tableName="app_user" columnName="id" columnDataType="bigint" incrementBy="1" />  
+      <addAutoIncrement tableName="app_user" columnName="id" columnDataType="bigint" incrementBy="1" />
+      <createTable tableName="following">
+         <column name="user_id" type="bigint">
+            <constraints nullable="false" />
+         </column>
+         <column name="following_id" type="bigint">
+            <constraints nullable="false" />
+         </column>
+      </createTable>
    </changeSet>
 </databaseChangeLog>

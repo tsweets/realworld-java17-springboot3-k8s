@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@Transactional
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
@@ -57,4 +59,23 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+    @Override
+    public User followUser(User requestingUser, User userToFollow) {
+        log.info("Service Call: Follow User (UserService) - Req User: {}  Follow User: {}", requestingUser.getUsername(), userToFollow.getUsername());
+        requestingUser.getFollowing().add(userToFollow);
+        User updatedUser = userRepository.save(requestingUser);
+
+        return updatedUser;
+    }
+
+    @Override
+    public User unfollowUser(User requestingUser, User userToUnfollow) {
+        log.info("Service Call: Un-Follow User (UserServce) - Req User: {}  Follow User: {}", requestingUser.getUsername(), userToUnfollow.getUsername());
+        requestingUser.getFollowing().remove(userToUnfollow);
+        User updatedUser = userRepository.save(requestingUser);
+
+        return updatedUser;
+    }
+
 }

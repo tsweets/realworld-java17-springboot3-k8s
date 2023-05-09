@@ -22,13 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "profile api", description = "User's Profile API")
 public class ProfileController {
 
-    /*
-    Get Profile
 
-GET /api/profiles/:username
-
-
-     */
     @Autowired
     TokenService tokenService;
 
@@ -44,7 +38,7 @@ GET /api/profiles/:username
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found profile")
     })
-    public ProfileDTO getUserProfile(@RequestHeader(name="Authorization") String token, @PathVariable(name = "user") String username) {
+    public ProfileDTO getUserProfile(@RequestHeader(name = "Authorization") String token, @PathVariable(name = "user") String username) {
         log.info("REST (get): /api/profiles/{user}");
         log.info("Username: {}", username);
         log.info("Token: {}", token);
@@ -56,8 +50,58 @@ GET /api/profiles/:username
             requestingUser = userService.findUserByEmail(requestingUsername);
         }
 
-        ProfileDTO profileDTO = profileService.getUserProfile(username);
+        ProfileDTO profileDTO = profileService.getUserProfile(username, requestingUser);
 
         return profileDTO;
     }
+
+
+    @PostMapping(value = "/{username}/follow", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Follow a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Follow user successful - return the profile of the user being followed")
+    })
+    public ProfileDTO followUser(@RequestHeader(name = "Authorization") String token, @PathVariable(name = "username") String username) {
+        log.info("REST (post): /api/profiles/{username}/follow");
+        log.info("Username: {}", username);
+        log.info("Token: {}", token);
+
+        User requestingUser = null;
+        if (token != null) {
+            String requestingUsername = tokenService.decodeToken(token).getSubject();
+            log.info("Requesting User: {}", requestingUsername);
+            requestingUser = userService.findUserByEmail(requestingUsername);
+        }
+
+        log.info("User: {} is requesting to follow User: {}", requestingUser.getUsername(), username);
+        ProfileDTO profileDTO = profileService.followUser(username, requestingUser.getUsername());
+
+        return profileDTO;
+    }
+
+    @DeleteMapping(value = "/{username}/follow", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "UnFollow a user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Un Follow user successful - return the profile of the user being no being followed anymore")
+    })
+    public ProfileDTO unFollowUser(@RequestHeader(name = "Authorization") String token, @PathVariable(name = "username") String username) {
+        log.info("REST (post): /api/profiles/{username}/follow");
+        log.info("Username: {}", username);
+        log.info("Token: {}", token);
+
+        User requestingUser = null;
+        if (token != null) {
+            String requestingUsername = tokenService.decodeToken(token).getSubject();
+            log.info("Requesting User: {}", requestingUsername);
+            requestingUser = userService.findUserByEmail(requestingUsername);
+        }
+
+        log.info("User: {} is requesting to unfollow User: {}", requestingUser.getUsername(), username);
+        ProfileDTO profileDTO = profileService.unFollowUser(username, requestingUser.getUsername());
+
+        return profileDTO;
+    }
+
 }

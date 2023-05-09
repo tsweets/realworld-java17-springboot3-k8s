@@ -36,5 +36,21 @@ public interface UserService {
      * @return user found
      */
     User findUserByUsername(String username);
+
+    /**
+     * Follow a User
+     * @param requestingUser User that wants to follow someone
+     * @param userToFollow the user that is being followed
+     * @return New Requesting User
+     */
+    User followUser(User requestingUser, User userToFollow);
+
+    /**
+     * Un-Follow a User
+     * @param requestingUser User that wants to unfollow someone
+     * @param userToUnfollow the user that is being unfollowed
+     * @return New Requesting User
+     */
+    User unfollowUser(User requestingUser, User userToUnfollow);
     
 }
