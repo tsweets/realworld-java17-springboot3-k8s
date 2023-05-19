@@ -7,9 +7,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
+import org.beer30.realworld.domain.AuthorDTO;
 import org.beer30.realworld.domain.UserDTO;
+import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.TokenService;
+import org.beer30.realworld.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +30,12 @@ import org.springframework.web.bind.annotation.*;
 public class ArticleController {
     @Autowired
     private TokenService tokenService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ArticleService articleService;
 
     /* Create Article
     {
@@ -46,16 +56,24 @@ public class ArticleController {
     public ArticleDTO createArticle(@RequestBody ArticleCreateDTO dto, @RequestHeader (name="Authorization") String token) {
         log.info("REST (post): /api/articles");
         log.info("Token: {}", token);
-        String username = tokenService.decodeToken(token).getSubject();
-        log.info("User: {}",username );
+        log.info("Article Date: {}", dto);
+        String email = tokenService.decodeToken(token).getSubject();
+        log.info("User(email): {}",email );
 
-      /*  User user = userService.findUserByEmail(dto.getEmail());
-        user.setBio(dto.getBio());
-        user.setImageUrl(dto.getImage());
+        User author = userService.findUserByEmail(email);
+        if (author == null) {
+            log.error("Invalid User: {}", email);
+            throw new RuntimeException(); // TODO need custom exception
+        }
 
-        User userUpdated = userService.updateUser(user);
-*/
-        return null; //userUpdated.toDto();
+        Article articleCreated = articleService.createArticle(dto, author);
+
+        ArticleDTO articleCreatedDto = articleCreated.toDto(); // Mostly filled out DTO
+        AuthorDTO authorDTO = AuthorDTO.builder()
+                .build();
+        articleCreatedDto.setAuthor(authorDTO);
+
+        return articleCreatedDto;
     }
 
     // Get Article

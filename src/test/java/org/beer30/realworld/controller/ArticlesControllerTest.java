@@ -1,6 +1,8 @@
 package org.beer30.realworld.controller;
 
+import com.github.javafaker.Faker;
 import com.google.gson.Gson;
+import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ProfileDTO;
 import org.beer30.realworld.model.User;
@@ -53,6 +55,8 @@ public class ArticlesControllerTest {
     }
     @Test
     public void createArticleTest() throws Exception {
+        Faker faker = new Faker();
+
         // Create Test User
         User testUser = ControllerTestUtils.createTestUser(userService);
 
@@ -60,17 +64,25 @@ public class ArticlesControllerTest {
         String token = ControllerTestUtils.getToken(this.mockMvc, testUser.getEmail(), testUser.getPassword());
 
         // Create Article
+        ArticleCreateDTO dto = new ArticleCreateDTO();
+        dto.setTitle(faker.book().title());
+        dto.setDescription(faker.rickAndMorty().quote());
+        dto.setBody(faker.lorem().paragraph(5));
+
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/articles")
+                        .content(gson.toJson(dto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(testUser.getUsername()))  // Not sure this comes back
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
                 .andReturn();
 
         ArticleDTO articleDTO = gson.fromJson(result.getResponse().getContentAsString(), ArticleDTO.class);
         Assert.assertNotNull(articleDTO);
+        System.out.println("Article Returned: " + articleDTO);
+        //TODO - more validation
       //  Assert.assertEquals(pBio, profileDTO.getBio());
 
       //  System.out.println("Profile: " + profileDTO);

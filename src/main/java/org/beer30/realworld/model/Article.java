@@ -1,6 +1,16 @@
 package org.beer30.realworld.model;
 
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.beer30.realworld.domain.ArticleDTO;
+import org.beer30.realworld.domain.AuthorDTO;
+
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -28,18 +38,51 @@ import java.util.Set;
         }
     }
 */
+@Entity
+@Table(name = "article") // NOTE: "user" is a keyword for some DBs, so don't use
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Article {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
     private String slug;
     private String title;
     private String description;
     private String body;
-    private Set<String> tagList;
+
+    @ManyToMany
+    @JoinTable(
+            name = "article_tag",
+            joinColumns = @JoinColumn(name = "tag"),
+            inverseJoinColumns = @JoinColumn(name = "article_id"))
+    private Set<Tag> tagList = new HashSet<>();
     private Instant createdAt;
     private Instant updatedAt;
     private Boolean favorited;
     private Long favoritesCount;
     private Long authorId;
 
+    public ArticleDTO toDto() {
+
+        ArticleDTO dto = ArticleDTO.builder()
+                .body(this.body)
+                .slug(this.slug)
+                .title(this.title)
+                .favorited(this.favorited)
+                .description(this.description)
+                .build();
+        if (this.createdAt != null) {
+            dto.setCreatedAt(this.createdAt.toString());
+        }
+        if (this.updatedAt != null) {
+            dto.setUpdatedAt(this.updatedAt.toString());
+        }
+        return dto;
+    }
 
 }

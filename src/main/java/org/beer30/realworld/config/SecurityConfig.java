@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/users/*", "/home").permitAll()
                         .requestMatchers("/api/user", "/api/profiles/**").authenticated()
+                        .requestMatchers("/api/articles").authenticated()
                         .anyRequest().denyAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
