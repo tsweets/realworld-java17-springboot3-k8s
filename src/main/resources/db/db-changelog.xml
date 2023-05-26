@@ -36,10 +36,10 @@
          <column name="slug" type="varchar(100)">
             <constraints nullable="true" />
          </column>
-         <column name="description" type="varchar(100)">
+         <column name="description" type="varchar(500)">
             <constraints nullable="false" />
          </column>
-         <column name="body" type="varchar(500)">
+         <column name="body" type="varchar(1500)">
             <constraints nullable="false" />
          </column>
          <column name="author_id" type="bigint">

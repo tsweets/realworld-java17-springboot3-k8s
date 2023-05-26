@@ -1,7 +1,9 @@
 package org.beer30.realworld.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.beer30.realworld.domain.ArticleCreateDTO;
+import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.repository.ArticleRepository;
@@ -21,6 +23,14 @@ public class ArticleServiceImpl implements ArticleService {
     ArticleRepository articleRepository;
 
     @Override
+    public Article findArticleBySlug(String slug) {
+        log.info("Service Call: findArticleBySlug - {}", slug);
+        Article article = articleRepository.findBySlug(slug);
+
+        return article;
+    }
+
+    @Override
     public Article createArticle(ArticleCreateDTO articleCreateDTO, User author) {
         log.info("Service Call: createArticle - {} - by author {}", articleCreateDTO, author);
 
@@ -35,7 +45,41 @@ public class ArticleServiceImpl implements ArticleService {
         article.setAuthorId(author.getId());
         article.setTitle(articleCreateDTO.getTitle());
 
+        // slugify title
+        String slug = slugify(articleCreateDTO.getTitle());
+        article.setSlug(slug);
+
         Article articleCreated = articleRepository.save(article);
         return articleCreated;
+    }
+
+    private static String slugify(String title) {
+        String slug1 = StringUtils.normalizeSpace(title);
+        String slug2 = slug1.replace(" ", "-");
+        return slug2;
+    }
+
+    @Override
+    public Article updateArticleBySlug(String slug, ArticleUpdateDTO dto) {
+        log.info("Service Call: updateArticle - {} - {} ", slug,dto);
+
+        // Find Article
+        Article article = this.findArticleBySlug(slug);
+        if (dto.getBody() != null) {
+            article.setBody(dto.getBody());
+        }
+
+        if (dto.getDescription() != null) {
+            article.setDescription(dto.getDescription());
+        }
+
+        if (dto.getTitle() != null) {
+            String slugNew = slugify(dto.getTitle());
+            article.setSlug(slugNew);
+            article.setTitle(dto.getTitle());
+        }
+
+        Article articleSaved = articleRepository.save(article);
+        return articleSaved;
     }
 }

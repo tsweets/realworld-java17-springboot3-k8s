@@ -5,10 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.beer30.realworld.domain.ArticleCreateDTO;
-import org.beer30.realworld.domain.ArticleDTO;
-import org.beer30.realworld.domain.AuthorDTO;
-import org.beer30.realworld.domain.UserDTO;
+import org.beer30.realworld.domain.*;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
@@ -49,14 +46,14 @@ public class ArticleController {
     */
     @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @Operation(description = "Update User")
+    @Operation(description = "Create Article")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User Updated")
+            @ApiResponse(responseCode = "200", description = "Article Created")
     })
     public ArticleDTO createArticle(@RequestBody ArticleCreateDTO dto, @RequestHeader (name="Authorization") String token) {
         log.info("REST (post): /api/articles");
         log.info("Token: {}", token);
-        log.info("Article Date: {}", dto);
+        log.info("Article Data: {}", dto);
         String email = tokenService.decodeToken(token).getSubject();
         log.info("User(email): {}",email );
 
@@ -77,7 +74,47 @@ public class ArticleController {
     }
 
     // Get Article
+    @GetMapping(value = "/{slug}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Get Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Article Found")
+    })
+    public ArticleDTO getArticle(@PathVariable String slug) {
+        log.info("REST (get): /api/articles");
+        log.info("Slug: {}", slug);
+
+        Article article = articleService.findArticleBySlug(slug);
+        ArticleDTO articleDTO = article.toDto();
+
+        return articleDTO;
+    }
     // Update Article
+    @PutMapping(value = "/{slug}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Get Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Article Found")
+    })
+    public ArticleDTO updateArticle(@PathVariable String slug, @RequestBody ArticleUpdateDTO dto, @RequestHeader (name="Authorization") String token) {
+        log.info("REST (put): /api/articles");
+        log.info("Slug: {}", slug);
+        log.info("Token: {}", token);
+        log.info("Article Data: {}", dto);
+        String email = tokenService.decodeToken(token).getSubject();
+        log.info("User(email): {}",email );
+
+        User author = userService.findUserByEmail(email);
+        if (author == null) {
+            log.error("Invalid User: {}", email);
+            throw new RuntimeException(); // TODO need custom exception
+        }
+
+        Article article = articleService.updateArticleBySlug(slug, dto);
+
+        return article.toDto();
+    }
+
     // Delete Article
     // List Articles
     // Feed Articles

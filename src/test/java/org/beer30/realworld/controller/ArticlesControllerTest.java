@@ -4,6 +4,7 @@ import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
+import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.domain.ProfileDTO;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.UserService;
@@ -82,6 +83,33 @@ public class ArticlesControllerTest {
         ArticleDTO articleDTO = gson.fromJson(result.getResponse().getContentAsString(), ArticleDTO.class);
         Assert.assertNotNull(articleDTO);
         System.out.println("Article Returned: " + articleDTO);
+
+        String articleSlug = articleDTO.getSlug();
+        MvcResult resultGetArticle = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/{slug}", articleSlug)
+                        .contentType(MediaType.APPLICATION_JSON))
+//                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                .andReturn();
+        Assert.assertNotNull(resultGetArticle);
+
+
+        ArticleDTO articleFound = gson.fromJson(resultGetArticle.getResponse().getContentAsString(), ArticleDTO.class);
+        Assert.assertNotNull(articleFound);
+        ArticleUpdateDTO articleUpdateDTO = new ArticleUpdateDTO();
+        articleUpdateDTO.setTitle(faker.book().title() + " UPDATED");
+        MvcResult resultUpdateArticle = this.mockMvc.perform(MockMvcRequestBuilders.put("/api/articles/{slug}", articleFound.getSlug())
+                        .content(gson.toJson(articleUpdateDTO))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(articleUpdateDTO.getTitle()))
+                .andReturn();
+
         //TODO - more validation
       //  Assert.assertEquals(pBio, profileDTO.getBio());
 

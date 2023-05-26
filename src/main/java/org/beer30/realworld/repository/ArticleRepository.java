@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 5/19/23 - 2:11 PM
  */
 public interface ArticleRepository extends JpaRepository<Article, Long> {
+
+    public Article findBySlug(String slug);
 }
