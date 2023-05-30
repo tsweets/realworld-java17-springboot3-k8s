@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * @author tsweets
@@ -38,26 +39,33 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public Article createArticle(ArticleCreateDTO articleCreateDTO, User author) {
-        log.info("Service Call: createArticle - {} - by author {}", articleCreateDTO, author);
+    public Article createArticle(Article article, User author) {
+        log.info("Service Call: createArticle(Model) - {} - by author {}", article, author);
 
-        Article article = new Article();
-        // TODO this is in the wrong place
         article.setFavorited(false);
         article.setFavoritesCount(0l);
         article.setCreatedAt(Instant.now());
         article.setUpdatedAt(Instant.now());
-        article.setBody(articleCreateDTO.getBody());
-        article.setDescription(articleCreateDTO.getDescription());
         article.setAuthorId(author.getId());
-        article.setTitle(articleCreateDTO.getTitle());
 
         // slugify title
-        String slug = slugify(articleCreateDTO.getTitle());
+        String slug = slugify(article.getTitle());
         article.setSlug(slug);
 
         Article articleCreated = articleRepository.save(article);
         return articleCreated;
+    }
+    @Override
+    public Article createArticle(ArticleCreateDTO articleCreateDTO, User author) {
+        log.info("Service Call: createArticle(DTO) - {} - by author {}", articleCreateDTO, author);
+
+        Article article = new Article();
+        // TODO this is in the wrong place
+        article.setBody(articleCreateDTO.getBody());
+        article.setDescription(articleCreateDTO.getDescription());
+        article.setTitle(articleCreateDTO.getTitle());
+
+        return this.createArticle(article,author);
     }
 
     private static String slugify(String title) {
@@ -88,5 +96,14 @@ public class ArticleServiceImpl implements ArticleService {
 
         Article articleSaved = articleRepository.save(article);
         return articleSaved;
+    }
+
+    @Override
+    public List<Article> findArticles() {
+        log.info("Service Call: findArticles");
+
+        List<Article> articleList = articleRepository.findAll();
+
+        return articleList;
     }
 }

@@ -63,7 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/*", "/home").permitAll()
                         .requestMatchers("/api/user", "/api/profiles/**").authenticated()
                         .requestMatchers(HttpMethod.GET,"/api/articles/{slug}").permitAll()
-                        .requestMatchers("/api/articles").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/api/articles").permitAll() // Might have to change this one for the filters
+                        .requestMatchers(HttpMethod.POST,"/api/articles").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/api/articles/{slug}").authenticated()
                         .requestMatchers(HttpMethod.DELETE,"/api/articles/{slug}").authenticated()
                         .anyRequest().denyAll()

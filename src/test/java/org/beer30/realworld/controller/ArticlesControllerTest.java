@@ -2,10 +2,12 @@ package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.domain.ProfileDTO;
+import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.UserService;
@@ -26,6 +28,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * @author tsweets
@@ -116,20 +123,63 @@ public class ArticlesControllerTest {
 
         ArticleDTO resultArticleUpdatedDTO = gson.fromJson(resultUpdateArticle.getResponse().getContentAsString(), ArticleDTO.class);
 
+        // Test List Articles - NOTE: this has a bunch of params to test
+        // 1st lets add couple more Articles.
+        Article article2 = createTestArticle(articleService, testUser);
+        Thread.sleep(1000l); // make sure this is a time delay so that sorting works predictably
+        Article article3 = createTestArticle(articleService, testUser);
+        // Get all articles: Should be at least 3
+        MvcResult resultGetAllArticles = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles")
+                        .contentType(MediaType.APPLICATION_JSON))
+//                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+         //       .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                .andReturn();
+        Assert.assertNotNull(resultGetAllArticles);
+        String articleListString = resultGetAllArticles.getResponse().getContentAsString();
+        Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>(){}.getType();
+        List<ArticleDTO> articleDTOs = gson.fromJson(articleListString, listOfArticleDtos);
+        Assert.assertNotNull(articleDTOs);
+        Assert.assertTrue(articleDTOs.size() >= 3);
+        // First one in the list should be the last one created if sorting is working
+        Assert.assertEquals(article3.getTitle(), articleDTOs.get(0).getTitle());
 
+  /* TODO - Need to test
+    Query Parameters:
+        Filter by tag: ?tag=AngularJS
+        Filter by author: ?author=jake
+        Favorited by user: ?favorited=jake
+        Limit number of articles (default is 20): ?limit=20
+        Offset/skip number of articles (default is 0): ?offset=0
+    Authentication optional, will return multiple articles, ordered by most recent first
+     */
+
+
+
+
+
+
+        // Put at end so I have some test data
         // Do Last (Delete)
         MvcResult resultDeleteArticle = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}", resultArticleUpdatedDTO.getSlug())
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
-    //            .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-    //            .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(articleUpdateDTO.getTitle()))
                 .andReturn();
         Assert.assertNull(articleService.findArticleBySlug(resultArticleUpdatedDTO.getSlug()));
 
-        //TODO - more validation
-      //  Assert.assertEquals(pBio, profileDTO.getBio());
+    }
 
-      //  System.out.println("Profile: " + profileDTO);
+    private Article createTestArticle(ArticleService articleService,User author) {
+        Faker faker = new Faker();
+
+        Article article = new Article();
+        article.setTitle(faker.book().title());
+        article.setDescription(faker.rickAndMorty().quote());
+        article.setBody(faker.lorem().paragraph(5));
+
+        return articleService.createArticle(article, author);
     }
 }

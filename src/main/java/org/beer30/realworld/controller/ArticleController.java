@@ -16,6 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author tsweets
  * 5/12/23 - 12:08 PM
@@ -115,6 +119,42 @@ public class ArticleController {
         return article.toDto();
     }
 
+
+
+    // List Article
+    /*
+    Query Parameters:
+        Filter by tag: ?tag=AngularJS
+        Filter by author: ?author=jake
+        Favorited by user: ?favorited=jake
+        Limit number of articles (default is 20): ?limit=20
+        Offset/skip number of articles (default is 0): ?offset=0
+    Authentication optional, will return multiple articles, ordered by most recent first
+     */
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "List Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Articles Found")
+    })
+    public List<ArticleDTO> listArticle() {
+        log.info("REST (get): /api/articles");
+      //  log.info("Slug: {}", slug);
+
+        List<Article> articles = articleService.findArticles();
+
+        List<ArticleDTO> dtos = new ArrayList<>();
+        for (Article article : articles) {
+            dtos.add(article.toDto());
+        }
+
+        Collections.reverse(dtos); // The correct order
+        return dtos;
+    }
+
+
+
+
     // Delete Article
     //DELETE /api/articles/:slug
     @DeleteMapping(value = "/{slug}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -131,6 +171,7 @@ public class ArticleController {
     }
 
     // List Articles
+
     // Feed Articles
     // Add Comments
     // Get Comments
