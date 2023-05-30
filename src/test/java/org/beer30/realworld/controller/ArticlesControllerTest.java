@@ -7,6 +7,7 @@ import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.domain.ProfileDTO;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.UserService;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,6 +47,9 @@ public class ArticlesControllerTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    ArticleService articleService;
 
     Gson gson = new Gson();
 
@@ -109,6 +113,19 @@ public class ArticlesControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(articleUpdateDTO.getTitle()))
                 .andReturn();
+
+        ArticleDTO resultArticleUpdatedDTO = gson.fromJson(resultUpdateArticle.getResponse().getContentAsString(), ArticleDTO.class);
+
+
+        // Do Last (Delete)
+        MvcResult resultDeleteArticle = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}", resultArticleUpdatedDTO.getSlug())
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+    //            .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+    //            .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(articleUpdateDTO.getTitle()))
+                .andReturn();
+        Assert.assertNull(articleService.findArticleBySlug(resultArticleUpdatedDTO.getSlug()));
 
         //TODO - more validation
       //  Assert.assertEquals(pBio, profileDTO.getBio());

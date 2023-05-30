@@ -13,5 +13,6 @@ public interface ArticleService {
 
     public Article createArticle(ArticleCreateDTO articleCreateDTO, User author);
     public Article findArticleBySlug(String slug);
+    public void deleteArticleBySlug(String slug);
     public Article updateArticleBySlug(String slug, ArticleUpdateDTO dto);
 }

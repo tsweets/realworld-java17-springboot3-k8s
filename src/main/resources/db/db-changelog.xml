@@ -60,5 +60,13 @@
          </column>
       </createTable>
       <addAutoIncrement tableName="article" columnName="id" columnDataType="bigint" incrementBy="1" />
+      <createTable tableName="article_tag">
+         <column name="tag" type="bigint">
+            <constraints nullable="false" />
+         </column>
+         <column name="tag_id" type="bigint">
+            <constraints nullable="false" />
+         </column>
+      </createTable>
    </changeSet>
 </databaseChangeLog>

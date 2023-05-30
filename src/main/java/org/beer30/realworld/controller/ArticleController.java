@@ -116,6 +116,20 @@ public class ArticleController {
     }
 
     // Delete Article
+    //DELETE /api/articles/:slug
+    @DeleteMapping(value = "/{slug}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Delete Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Article Deleted")
+    })
+    public void deleteArticle(@PathVariable String slug, @RequestHeader (name="Authorization") String token) {
+        log.info("REST (delete): /api/articles");
+        log.info("Slug: {}", slug);
+
+        articleService.deleteArticleBySlug(slug);
+    }
+
     // List Articles
     // Feed Articles
     // Add Comments

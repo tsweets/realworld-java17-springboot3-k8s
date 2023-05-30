@@ -65,6 +65,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/articles/{slug}").permitAll()
                         .requestMatchers("/api/articles").authenticated()
                         .requestMatchers(HttpMethod.PUT,"/api/articles/{slug}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE,"/api/articles/{slug}").authenticated()
                         .anyRequest().denyAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

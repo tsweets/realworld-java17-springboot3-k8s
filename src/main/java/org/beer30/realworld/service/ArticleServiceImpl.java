@@ -31,6 +31,13 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public void deleteArticleBySlug(String slug) {
+        log.info("Service Call: deleteArticleBySlug - {}", slug);
+        Article article = this.findArticleBySlug(slug);
+        articleRepository.delete(article);
+    }
+
+    @Override
     public Article createArticle(ArticleCreateDTO articleCreateDTO, User author) {
         log.info("Service Call: createArticle - {} - by author {}", articleCreateDTO, author);
 
