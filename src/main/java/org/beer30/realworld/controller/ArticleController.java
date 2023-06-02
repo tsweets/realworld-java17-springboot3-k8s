@@ -5,7 +5,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.beer30.realworld.domain.*;
+import org.beer30.realworld.domain.ArticleCreateDTO;
+import org.beer30.realworld.domain.ArticleDTO;
+import org.beer30.realworld.domain.ArticleUpdateDTO;
+import org.beer30.realworld.domain.AuthorDTO;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
@@ -133,7 +136,7 @@ public class ArticleController {
      */
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    @Operation(description = "List Article")
+    @Operation(description = "List Articles")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Articles Found")
     })
@@ -163,16 +166,54 @@ public class ArticleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Article Deleted")
     })
-    public void deleteArticle(@PathVariable String slug, @RequestHeader (name="Authorization") String token) {
+    public void deleteArticle(@PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
         log.info("REST (delete): /api/articles");
         log.info("Slug: {}", slug);
 
         articleService.deleteArticleBySlug(slug);
     }
 
-    // List Articles
 
     // Feed Articles
+    /*
+    Query Parameters:
+        Filter by tag: ?tag=AngularJS
+        Filter by author: ?author=jake
+        Favorited by user: ?favorited=jake
+        Limit number of articles (default is 20): ?limit=20
+        Offset/skip number of articles (default is 0): ?offset=0
+    Authentication optional, will return multiple articles, ordered by most recent first
+     */
+    @GetMapping(value = "/feed", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Feed Articles")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Articles by authors I follow")
+    })
+    public List<ArticleDTO> feedArticles(@RequestHeader(name = "Authorization") String token) {
+        log.info("REST (get): /api/articles/feed");
+        //  log.info("Slug: {}", slug);
+        String email = tokenService.decodeToken(token).getSubject();
+        log.info("User(email): {}", email);
+
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            log.error("Invalid User: {}", email);
+            throw new RuntimeException(); // TODO need custom exception
+        }
+
+        List<Article> articles = articleService.findFeedArticles(user);
+
+        List<ArticleDTO> dtos = new ArrayList<>();
+        for (Article article : articles) {
+            dtos.add(article.toDto());
+        }
+
+        Collections.reverse(dtos); // The correct order
+        return dtos;
+    }
+
+
     // Add Comments
     // Get Comments
     // Delete Comment

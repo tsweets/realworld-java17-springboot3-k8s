@@ -13,12 +13,17 @@ import java.util.List;
  */
 public interface ArticleService {
 
-    public Article createArticle(ArticleCreateDTO articleCreateDTO, User author);
-    public Article createArticle(Article article, User author);
+    Article createArticle(ArticleCreateDTO articleCreateDTO, User author);
 
-        public Article findArticleBySlug(String slug);
-    public void deleteArticleBySlug(String slug);
-    public Article updateArticleBySlug(String slug, ArticleUpdateDTO dto);
+    Article createArticle(Article article, User author);
+
+    Article findArticleBySlug(String slug);
+
+    void deleteArticleBySlug(String slug);
+
+    Article updateArticleBySlug(String slug, ArticleUpdateDTO dto);
 
     List<Article> findArticles();
+
+    List<Article> findFeedArticles(User user);
 }

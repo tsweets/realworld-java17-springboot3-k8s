@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author tsweets
@@ -43,7 +45,7 @@ public class ArticleServiceImpl implements ArticleService {
         log.info("Service Call: createArticle(Model) - {} - by author {}", article, author);
 
         article.setFavorited(false);
-        article.setFavoritesCount(0l);
+        article.setFavoritesCount(0L);
         article.setCreatedAt(Instant.now());
         article.setUpdatedAt(Instant.now());
         article.setAuthorId(author.getId());
@@ -104,6 +106,26 @@ public class ArticleServiceImpl implements ArticleService {
 
         List<Article> articleList = articleRepository.findAll();
 
+        return articleList;
+    }
+
+    @Override
+    public List<Article> findFeedArticles(User user) {
+        log.info("Service Call: findFeedArticles");
+
+        // Get a list of Authors that the user is following
+        Set<User> authorsFollowed = user.getFollowing();
+        if (authorsFollowed == null) {
+            log.info("Not following any authors");
+            return null;
+        }
+
+        Set<Long> authorIds = new HashSet<>();
+        for (User author : authorsFollowed) {
+            authorIds.add(author.getId());
+        }
+
+        List<Article> articleList = articleRepository.findByAuthorIdIsIn(authorIds);
         return articleList;
     }
 }

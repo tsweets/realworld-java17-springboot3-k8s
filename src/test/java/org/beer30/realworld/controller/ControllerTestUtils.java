@@ -5,7 +5,9 @@ import com.google.gson.Gson;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
+import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.UserService;
 import org.junit.Assert;
 import org.springframework.http.MediaType;
@@ -23,11 +25,23 @@ import java.time.Instant;
  */
 public class ControllerTestUtils {
 
+
+    public static Article createTestArticle(ArticleService articleService, User author) {
+        Faker faker = new Faker();
+
+        Article article = new Article();
+        article.setTitle(faker.book().title());
+        article.setDescription(faker.rickAndMorty().quote());
+        article.setBody(faker.lorem().paragraph(5));
+
+        return articleService.createArticle(article, author);
+    }
+
     public static User createTestUser(UserService userService) {
         Faker faker = new Faker();
         String testUserName = faker.name().lastName() + Instant.now().toEpochMilli();
         String email = testUserName + "@example.com";
-        String password = "password" + faker.internet().password(4,5);
+        String password = "password" + faker.internet().password(4, 5);
 
 
         // Create Test User

@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
-import org.beer30.realworld.domain.ProfileDTO;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
@@ -27,11 +26,15 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import static org.beer30.realworld.controller.ControllerTestUtils.createTestArticle;
 
 
 /**
@@ -65,6 +68,69 @@ public class ArticlesControllerTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
                 .addFilter(springSecurityFilterChain).build();
     }
+
+    @Test
+    @Transactional
+    public void feedArticleTest() throws Exception {
+        // Create the Authors/Reader
+        User author1 = ControllerTestUtils.createTestUser(userService);
+        User author2 = ControllerTestUtils.createTestUser(userService);
+        User author3 = ControllerTestUtils.createTestUser(userService);
+        User reader = ControllerTestUtils.createTestUser(userService);
+
+        // Create the test Articles
+        Article article1_1 = ControllerTestUtils.createTestArticle(articleService, author1);
+        Article article1_2 = ControllerTestUtils.createTestArticle(articleService, author1);
+        Article article2_1 = ControllerTestUtils.createTestArticle(articleService, author2);
+        Article article2_2 = ControllerTestUtils.createTestArticle(articleService, author2);
+        Article article3_1 = ControllerTestUtils.createTestArticle(articleService, author3);
+        Article article3_2 = ControllerTestUtils.createTestArticle(articleService, author3);
+
+        // Follow the authors
+        userService.followUser(reader, author1);
+        userService.followUser(reader, author2);
+        userService.followUser(reader, author3);
+
+        // Look up the reader and get the followed
+        User userFound = userService.findUserByEmail(reader.getEmail());
+        Assert.assertNotNull(userFound);
+        Set<User> followedAuthorList = userFound.getFollowing();
+        Assert.assertNotNull(followedAuthorList);
+        Assert.assertEquals(3, followedAuthorList.size());
+
+        // Get Articles
+        List<Article> feedList = articleService.findFeedArticles(reader);
+        Assert.assertNotNull(feedList);
+        Assert.assertEquals(6, feedList.size());
+
+        Assert.assertTrue(feedList.contains(article1_1));
+        Assert.assertTrue(feedList.contains(article2_1));
+        Assert.assertTrue(feedList.contains(article3_1));
+        Assert.assertTrue(feedList.contains(article1_2));
+        Assert.assertTrue(feedList.contains(article2_2));
+        Assert.assertTrue(feedList.contains(article3_2));
+
+        // Token for requesting user
+        String token = ControllerTestUtils.getToken(this.mockMvc, userFound.getEmail(), userFound.getPassword());
+
+        MvcResult resultGetAllArticles = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/feed")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                //       .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                .andReturn();
+        Assert.assertNotNull(resultGetAllArticles);
+        String articleListString = resultGetAllArticles.getResponse().getContentAsString();
+        Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>() {
+        }.getType();
+        List<ArticleDTO> articleDTOs = gson.fromJson(articleListString, listOfArticleDtos);
+        Assert.assertNotNull(articleDTOs);
+        Assert.assertEquals(6, articleDTOs.size());
+
+    }
+
     @Test
     public void createArticleTest() throws Exception {
         Faker faker = new Faker();
@@ -126,7 +192,7 @@ public class ArticlesControllerTest {
         // Test List Articles - NOTE: this has a bunch of params to test
         // 1st lets add couple more Articles.
         Article article2 = createTestArticle(articleService, testUser);
-        Thread.sleep(1000l); // make sure this is a time delay so that sorting works predictably
+        Thread.sleep(1000L); // make sure this is a time delay so that sorting works predictably
         Article article3 = createTestArticle(articleService, testUser);
         // Get all articles: Should be at least 3
         MvcResult resultGetAllArticles = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles")
@@ -172,14 +238,5 @@ public class ArticlesControllerTest {
 
     }
 
-    private Article createTestArticle(ArticleService articleService,User author) {
-        Faker faker = new Faker();
 
-        Article article = new Article();
-        article.setTitle(faker.book().title());
-        article.setDescription(faker.rickAndMorty().quote());
-        article.setBody(faker.lorem().paragraph(5));
-
-        return articleService.createArticle(article, author);
-    }
 }
