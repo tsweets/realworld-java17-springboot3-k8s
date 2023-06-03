@@ -64,14 +64,17 @@ public class ProfileControllerTest {
     public void getUserProfileTest() throws Exception {
         String testUserName = faker.name().lastName() + Instant.now().toEpochMilli();
         String email = testUserName + "@example.com";
-        String password = "password" + faker.internet().password(4,5);
+        String password = "password" + faker.internet().password(4, 5);
 
 
         // Create Test User
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+        UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
                 .email(email)
                 .username(testUserName)
                 .password(password)
+                .build();
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .user(userEmbedded)
                 .build();
 
         User requestingUser = userService.createUser(userRegistrationDTO);
@@ -117,14 +120,17 @@ public class ProfileControllerTest {
     public void followUserTest() throws Exception {
         String requestingUserName = faker.name().lastName() + Instant.now().toEpochMilli();
         String requestingEmail = requestingUserName + "@example.com";
-        String requestingPassword = "password" + faker.internet().password(4,5);
+        String requestingPassword = "password" + faker.internet().password(4, 5);
 
 
         // Create Test User (Requesting)
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+        UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
                 .email(requestingEmail)
                 .username(requestingUserName)
                 .password(requestingPassword)
+                .build();
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .user(userEmbedded)
                 .build();
 
         User requestingUser = userService.createUser(userRegistrationDTO);

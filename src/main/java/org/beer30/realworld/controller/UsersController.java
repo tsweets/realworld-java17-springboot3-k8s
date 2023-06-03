@@ -1,8 +1,11 @@
 package org.beer30.realworld.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
@@ -12,25 +15,14 @@ import org.beer30.realworld.service.TokenService;
 import org.beer30.realworld.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.server.ResponseStatusException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 //Content-Type: application/json; charset=utf-8
@@ -76,14 +68,14 @@ public class UsersController {
     }
 
 
-    @PostMapping(value = "/", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "User Registration")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User Created")
     })
     public UserDTO userRegistration(@Valid @RequestBody UserRegistrationDTO dto) {
-        log.info("REST (get): /api/users/");
+        log.info("REST (get): /api/users");
         log.info("Registration: {}", dto);
         User user = userService.createUser(dto);
         UserDTO createdUser = new UserDTO(user.getEmail(),  null, user.getUsername(), null, null);

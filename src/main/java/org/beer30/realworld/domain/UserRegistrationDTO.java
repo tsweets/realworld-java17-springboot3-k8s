@@ -18,12 +18,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder 
+@Builder
 public class UserRegistrationDTO {
-    @NotNull
-    String username;
-    @NotNull
-    String email;
-    @NotNull
-    String password;
+    private User user;
+
+    @Data
+    @Builder
+    static public class User {
+        @NotNull
+        String username;
+        @NotNull
+        String email;
+        @NotNull
+        String password;
+
+    }
 }

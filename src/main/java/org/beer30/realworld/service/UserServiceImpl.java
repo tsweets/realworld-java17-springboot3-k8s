@@ -18,11 +18,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(UserRegistrationDTO userRegistrationDTO) {
         log.info("Service Call: Create User - {}", userRegistrationDTO);
-       
+
         User user = new User();
-        user.setUsername(userRegistrationDTO.getUsername());
-        user.setEmail(userRegistrationDTO.getEmail());
-        user.setPassword(userRegistrationDTO.getPassword());
+        user.setUsername(userRegistrationDTO.getUser().getUsername());
+        user.setEmail(userRegistrationDTO.getUser().getEmail());
+        user.setPassword(userRegistrationDTO.getUser().getPassword());
 
         User userCreated = userRepository.save(user);
         log.info("User Created with ID: {}", userCreated.getId());

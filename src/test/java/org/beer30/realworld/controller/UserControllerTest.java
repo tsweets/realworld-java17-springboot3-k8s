@@ -1,6 +1,7 @@
 package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
+import com.google.gson.Gson;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
@@ -9,7 +10,6 @@ import org.beer30.realworld.service.UserService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.platform.commons.util.StringUtils;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,8 +24,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import com.google.gson.Gson;
 
 import java.time.Instant;
 
@@ -60,18 +58,21 @@ public class UserControllerTest {
     @Test
     public void getCurrentUserTest() throws Exception {
         // Create Test User
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+        UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
                 .email("foo@example.com")
                 .username("foouser")
                 .password("password")
                 .build();
-        
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .user(userEmbedded)
+                .build();
+
         User userCreated = userService.createUser(userRegistrationDTO);
         Assert.assertNotNull(userCreated);
 
         // Login and get token
         UserLoginDTO userLoginDTO = UserLoginDTO.builder()
-            .email("foo@example.com")
+                .email("foo@example.com")
             .password("password")
             .build();
 
@@ -110,15 +111,16 @@ public class UserControllerTest {
     public void updateUserTest() throws Exception {
         String testUserName = faker.name().lastName() + Instant.now().toEpochMilli();
         String email = testUserName + "@example.com";
-        String password = "password" + faker.internet().password(4,5);
+        String password = "password" + faker.internet().password(4, 5);
 
-
-        //    public UserDTO updateUser(@RequestBody UserDTO dto) {
         // Create Test User
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+        UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
                 .email(email)
                 .username(testUserName)
                 .password(password)
+                .build();
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .user(userEmbedded)
                 .build();
 
         User userCreated = userService.createUser(userRegistrationDTO);

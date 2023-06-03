@@ -45,10 +45,13 @@ public class ControllerTestUtils {
 
 
         // Create Test User
-        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+        UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
                 .email(email)
                 .username(testUserName)
                 .password(password)
+                .build();
+        UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
+                .user(userEmbedded)
                 .build();
 
         User testUser = userService.createUser(userRegistrationDTO);
