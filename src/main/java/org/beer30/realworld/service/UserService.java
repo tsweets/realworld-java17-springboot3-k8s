@@ -1,6 +1,5 @@
 package org.beer30.realworld.service;
 
-import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
 
@@ -23,8 +22,16 @@ public interface UserService {
     User updateUser(User user);
 
     /**
-     * Lookup a User by their email 
-     * 
+     * Lookup a user by system id (DB)
+     *
+     * @param userId
+     * @return user found
+     */
+    User findById(Long userId);
+
+    /**
+     * Lookup a User by their email
+     *
      * @param email email to lookup by
      * @return user found
      */
@@ -52,5 +59,6 @@ public interface UserService {
      * @return New Requesting User
      */
     User unfollowUser(User requestingUser, User userToUnfollow);
-    
+
+
 }

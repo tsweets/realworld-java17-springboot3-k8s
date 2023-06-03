@@ -1,13 +1,11 @@
 package org.beer30.realworld.service;
 
-import org.beer30.realworld.domain.UserDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -41,12 +39,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findById(Long userId) {
+        log.info("Service Call: Find by ID - {}", userId);
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    @Override
     public User findUserByEmail(String email) {
         log.info("Service Call: Find by email - {}", email);
 
         User user = userRepository.findByEmail(email);
         log.info("Returning User: {}", user);
-        
+
         return user;
     }
 

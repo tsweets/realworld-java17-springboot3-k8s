@@ -1,8 +1,8 @@
 package org.beer30.realworld.config;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import org.beer30.realworld.controller.AuthTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,21 +10,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 @Configuration
 @EnableWebSecurity
@@ -62,11 +59,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/api/users/*", "/home").permitAll()
                         .requestMatchers("/api/user", "/api/profiles/**").authenticated()
-                        .requestMatchers(HttpMethod.GET,"/api/articles/{slug}").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/articles").permitAll() // Might have to change this one for the filters
-                        .requestMatchers(HttpMethod.POST,"/api/articles").authenticated()
-                        .requestMatchers(HttpMethod.PUT,"/api/articles/{slug}").authenticated()
-                        .requestMatchers(HttpMethod.DELETE,"/api/articles/{slug}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/articles/{slug}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/articles").permitAll() // Might have to change this one for the filters
+                        .requestMatchers(HttpMethod.POST, "/api/articles").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/articles/{slug}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/articles/{slug}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/articles/{slug}/comments").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/articles/{slug}/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/articles/{slug}/comments/*").authenticated()
                         .anyRequest().denyAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Articles")
+@Schema(description = "Author")
 public class AuthorDTO {
     private String username;
     private String bio;
