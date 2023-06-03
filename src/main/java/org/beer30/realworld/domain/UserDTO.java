@@ -29,17 +29,22 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Users (for authentication)")
 public class UserDTO {
 
-    @Schema(description = "Email Address of the User", example = "tony@example.com")
-    String email;
-    @Schema(description = "JWT Token for the User")
-    String token;
-    @Schema(description = "Username")
-    String username;
-    @Schema(description = "User Biogragphy")
-    String bio;
-    @Schema(description = "URL to Avatar")
-    String image;
+    private User user;
+
+    @Data
+    @Builder
+    static public class User {
+        @Schema(description = "Email Address of the User", example = "tony@example.com")
+        String email;
+        @Schema(description = "JWT Token for the User")
+        String token;
+        @Schema(description = "Username")
+        String username;
+        @Schema(description = "User Biogragphy")
+        String bio;
+        @Schema(description = "URL to Avatar")
+        String image;
+    }
 
 
-       
 }

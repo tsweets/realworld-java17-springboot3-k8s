@@ -188,7 +188,13 @@ public class ProfileControllerTest {
 
     }
     private String getToken(String email, String password) throws Exception {
-        UserLoginDTO userLoginDTO = UserLoginDTO.builder().email(email).password(password).build();
+        UserLoginDTO.User userEmbedded = UserLoginDTO.User.builder()
+                .email(email)
+                .password(password)
+                .build();
+        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+                .user(userEmbedded)
+                .build();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
                         .content(gson.toJson(userLoginDTO))
@@ -199,7 +205,7 @@ public class ProfileControllerTest {
 
         UserDTO dto = gson.fromJson(result.getResponse().getContentAsString(), UserDTO.class);
         System.out.println(dto);
-        String token = dto.getToken();
+        String token = dto.getUser().getToken();
         Assert.assertNotNull(token);
 
         return token;

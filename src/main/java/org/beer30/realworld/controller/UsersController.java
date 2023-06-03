@@ -46,14 +46,14 @@ public class UsersController {
     })
     public ResponseEntity<UserDTO> authenticateUser(@RequestBody UserLoginDTO dto) {
         log.info("REST (post): /api/users/login ");
-        String passwordMasked = StringUtils.repeat("*", dto.getPassword().length());
-        log.info("Username: {} - Password: {}", dto.getEmail(), passwordMasked);
+        String passwordMasked = StringUtils.repeat("*", dto.getUser().getPassword().length());
+        log.info("Username: {} - Password: {}", dto.getUser().getEmail(), passwordMasked);
 
-        User user = userService.findUserByEmail(dto.getEmail());
+        User user = userService.findUserByEmail(dto.getUser().getEmail());
         UserDTO userDTO = new UserDTO();
-        
+
         if (user == null) {
-            log.error("No User found: {}",dto);
+            log.error("No User found: {}", dto);
             // return a 401 error
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new UserDTO());
         } else {
@@ -61,7 +61,7 @@ public class UsersController {
             String token = tokenService.generateToken(user);
 
             userDTO = user.toDto();
-            userDTO.setToken(token);
+            userDTO.getUser().setToken(token);
         }
 
         return new ResponseEntity<UserDTO>(userDTO,HttpStatus.OK);
@@ -78,7 +78,13 @@ public class UsersController {
         log.info("REST (get): /api/users");
         log.info("Registration: {}", dto);
         User user = userService.createUser(dto);
-        UserDTO createdUser = new UserDTO(user.getEmail(),  null, user.getUsername(), null, null);
+        UserDTO.User embeddedUser = UserDTO.User.builder()
+                .bio(user.getBio())
+                .email(user.getEmail())
+                .image(user.getImageUrl())
+                .username(user.getUsername())
+                .build();
+        UserDTO createdUser = UserDTO.builder().user(embeddedUser).build();
 
         return createdUser;
     }

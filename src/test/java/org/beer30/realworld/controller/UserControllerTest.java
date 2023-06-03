@@ -71,21 +71,23 @@ public class UserControllerTest {
         Assert.assertNotNull(userCreated);
 
         // Login and get token
-        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+        UserLoginDTO.User userEmbedded2 = UserLoginDTO.User.builder()
                 .email("foo@example.com")
-            .password("password")
-            .build();
+                .password("password")
+                .build();
+        UserLoginDTO userLoginDTO = UserLoginDTO.builder().user(userEmbedded2)
+                .build();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
-                .content(gson.toJson(userLoginDTO))
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andDo(MockMvcResultHandlers.print())
-            .andReturn();
-        
+                        .content(gson.toJson(userLoginDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+
         UserDTO dto = gson.fromJson(result.getResponse().getContentAsString(), UserDTO.class);
         System.out.println(dto);
-        String token = dto.getToken();
+        String token = dto.getUser().getToken();
         Assert.assertNotNull(token);
 
 
@@ -97,12 +99,12 @@ public class UserControllerTest {
 
         // Add the token and should work now
         MvcResult resultWithToken = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/user")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Token " + token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value("foouser"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value("foouser"))
                 .andReturn();
 
     }
@@ -131,7 +133,7 @@ public class UserControllerTest {
 
         String bio = faker.chuckNorris().fact().replace("Chuck Norris", testUserName);
 
-        userDTOUpdate.setBio(bio);
+        userDTOUpdate.getUser().setBio(bio);
 
         String token = this.getToken(email, password);
         // Update user
@@ -142,21 +144,27 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(testUserName))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value(testUserName))
                 .andReturn();
 
         UserDTO userUpdated = gson.fromJson(result.getResponse().getContentAsString(),UserDTO.class);
         Assert.assertNotNull(userUpdated);
-        Assert.assertEquals(bio, userUpdated.getBio());
+        Assert.assertEquals(bio, userUpdated.getUser().getBio());
 
-        System.out.println("BIO: " + userUpdated.getBio());
+        System.out.println("BIO: " + userUpdated.getUser().getBio());
 
 
 
     }
 
     private String getToken(String email, String password) throws Exception {
-        UserLoginDTO userLoginDTO = UserLoginDTO.builder().email(email).password(password).build();
+        UserLoginDTO.User userEmbedded2 = UserLoginDTO.User.builder()
+                .email(email)
+                .password(password)
+                .build();
+        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+                .user(userEmbedded2)
+                .build();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
                         .content(gson.toJson(userLoginDTO))
@@ -167,7 +175,7 @@ public class UserControllerTest {
 
         UserDTO dto = gson.fromJson(result.getResponse().getContentAsString(), UserDTO.class);
         System.out.println(dto);
-        String token = dto.getToken();
+        String token = dto.getUser().getToken();
         Assert.assertNotNull(token);
 
         return token;

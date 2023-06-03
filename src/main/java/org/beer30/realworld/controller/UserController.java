@@ -1,5 +1,9 @@
 package org.beer30.realworld.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.TokenService;
@@ -8,11 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -53,11 +52,11 @@ public class UserController {
         log.info("REST (put): /api/user/");
         log.info("Token: {}", token);
         String username = tokenService.decodeToken(token).getSubject();
-        log.info("User: {}",username );
+        log.info("User: {}", username);
 
-        User user = userService.findUserByEmail(dto.getEmail());
-        user.setBio(dto.getBio());
-        user.setImageUrl(dto.getImage());
+        User user = userService.findUserByEmail(dto.getUser().getEmail());
+        user.setBio(dto.getUser().getBio());
+        user.setImageUrl(dto.getUser().getImage());
 
         User userUpdated = userService.updateUser(user);
 

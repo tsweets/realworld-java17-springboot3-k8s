@@ -53,21 +53,24 @@ public class UsersControllerTest {
 
         Assert.assertNotNull(userCreated);
 
-        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+        UserLoginDTO.User userEmbeddedLogin = UserLoginDTO.User.builder()
                 .email("foo@example.com")
                 .password("password")
                 .build();
+        UserLoginDTO userLoginDTO = UserLoginDTO.builder()
+                .user(userEmbeddedLogin)
+                .build();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/users/login")
-                .content(gson.toJson(userLoginDTO))
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andDo(MockMvcResultHandlers.print())
-            .andReturn();
+                        .content(gson.toJson(userLoginDTO))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
         
         UserDTO dto = gson.fromJson(result.getResponse().getContentAsString(), UserDTO.class);
         System.out.println(dto);
-        Assert.assertNotNull(dto.getToken());
+        Assert.assertNotNull(dto.getUser().getToken());
         
     }
 
@@ -90,7 +93,7 @@ public class UsersControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value("user1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value("user1"))
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
 

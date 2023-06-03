@@ -7,9 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.beer30.realworld.domain.UserDTO;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -38,7 +36,10 @@ public class User {
     
 
     public UserDTO toDto() {
-        UserDTO dto = UserDTO.builder().username(this.getUsername()).email(this.getEmail()).bio(this.getBio()).image(this.imageUrl).build();
+        UserDTO.User embeddedUser = UserDTO.User.builder()
+                .username(this.getUsername()).email(this.getEmail()).bio(this.getBio()).image(this.imageUrl)
+                .build();
+        UserDTO dto = UserDTO.builder().user(embeddedUser).build();
         return dto;
     }
 }
