@@ -5,12 +5,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Tag;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.repository.ArticleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +52,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setUpdatedAt(Instant.now());
         article.setAuthorId(author.getId());
 
+
         // slugify title
         String slug = slugify(article.getTitle());
         article.setSlug(slug);
@@ -62,12 +65,20 @@ public class ArticleServiceImpl implements ArticleService {
         log.info("Service Call: createArticle(DTO) - {} - by author {}", articleCreateDTO, author);
 
         Article article = new Article();
-        // TODO this is in the wrong place
-        article.setBody(articleCreateDTO.getBody());
-        article.setDescription(articleCreateDTO.getDescription());
-        article.setTitle(articleCreateDTO.getTitle());
+        article.setBody(articleCreateDTO.getArticle().getBody());
+        article.setDescription(articleCreateDTO.getArticle().getDescription());
+        article.setTitle(articleCreateDTO.getArticle().getTitle());
+        String[] tagList = articleCreateDTO.getArticle().getTagList();
+        if (tagList != null) {
+            List<Tag> tagListList = new ArrayList();
+            for (String tag : tagList) {
+                tagListList.add(new Tag(tag));
+            }
+            //Collections.reverse(tagListList);
+            article.setTagList(tagListList);
+        }
 
-        return this.createArticle(article,author);
+        return this.createArticle(article, author);
     }
 
     private static String slugify(String title) {

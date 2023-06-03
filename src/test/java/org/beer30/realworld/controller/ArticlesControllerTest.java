@@ -3,7 +3,6 @@ package org.beer30.realworld.controller;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ArticleMulitpleDTO;
@@ -31,8 +30,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -135,6 +132,7 @@ public class ArticlesControllerTest {
     }
 
     @Test
+    @Transactional
     public void createArticleTest() throws Exception {
         Faker faker = new Faker();
 
@@ -145,19 +143,26 @@ public class ArticlesControllerTest {
         String token = ControllerTestUtils.getToken(this.mockMvc, testUser.getEmail(), testUser.getPassword());
 
         // Create Article
-        ArticleCreateDTO dto = new ArticleCreateDTO();
-        dto.setTitle(faker.book().title());
-        dto.setDescription(faker.rickAndMorty().quote());
-        dto.setBody(faker.lorem().paragraph(5));
+        String[] tagList = {"reactjs", "angularjs", "dragons"};
+        ArticleCreateDTO.Article articleEmbedded = ArticleCreateDTO.Article.builder()
+                .body(faker.lorem().paragraph(5))
+                .title(faker.book().title())
+                .description(faker.rickAndMorty().quote())
+                .tagList(tagList)
+                //    .tagList("['reactjs', 'angularjs', 'dragons']")
+                .build();
+        ArticleCreateDTO dto = ArticleCreateDTO.builder().article(articleEmbedded).build();
+        String dtoString = gson.toJson(dto);
+        System.out.println("DTO STRING\n" + dtoString);
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/articles")
-                        .content(gson.toJson(dto))
+                        .content(dtoString)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getArticle().getTitle()))
                 .andReturn();
 
         ArticleDTO articleDTO = gson.fromJson(result.getResponse().getContentAsString(), ArticleDTO.class);
@@ -171,7 +176,8 @@ public class ArticlesControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getArticle().getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.tagList[0]").value(dto.getArticle().getTagList()[0]))
                 .andReturn();
         Assert.assertNotNull(resultGetArticle);
 
@@ -204,16 +210,16 @@ public class ArticlesControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-         //       .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                //       .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
                 .andReturn();
         Assert.assertNotNull(resultGetAllArticles);
         String articleListString = resultGetAllArticles.getResponse().getContentAsString();
-        Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>(){}.getType();
-        List<ArticleDTO> articleDTOs = gson.fromJson(articleListString, listOfArticleDtos);
+        //Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>(){}.getType();
+        ArticleMulitpleDTO articleDTOs = gson.fromJson(articleListString, ArticleMulitpleDTO.class);
         Assert.assertNotNull(articleDTOs);
-        Assert.assertTrue(articleDTOs.size() >= 3);
+        Assert.assertTrue(articleDTOs.getArticles().size() >= 3);
         // First one in the list should be the last one created if sorting is working
-        Assert.assertEquals(article3.getTitle(), articleDTOs.get(0).getArticle().getTitle());
+        Assert.assertEquals(article3.getTitle(), articleDTOs.getArticles().get(0).getTitle());
 
   /* TODO - Need to test
     Query Parameters:

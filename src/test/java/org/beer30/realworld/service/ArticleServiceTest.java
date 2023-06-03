@@ -32,10 +32,12 @@ public class ArticleServiceTest {
         User author = ControllerTestUtils.createTestUser(userService);
 
         // Create Article
-        ArticleCreateDTO dto = new ArticleCreateDTO();
-        dto.setTitle(faker.book().title());
-        dto.setDescription(faker.rickAndMorty().quote());
-        dto.setBody(faker.lorem().paragraph(5));
+        ArticleCreateDTO.Article articleEmbedded = ArticleCreateDTO.Article.builder()
+                .body(faker.lorem().paragraph(5))
+                .title(faker.book().title())
+                .description(faker.rickAndMorty().quote())
+                .build();
+        ArticleCreateDTO dto = ArticleCreateDTO.builder().article(articleEmbedded).build();
 
         Article article = articleService.createArticle(dto, author);
         Assert.assertNotNull(article);
@@ -44,7 +46,7 @@ public class ArticleServiceTest {
         // Find Article
         Article articleFoundBySlug = articleService.findArticleBySlug(article.getSlug());
         Assert.assertNotNull(articleFoundBySlug);
-        Assert.assertEquals(dto.getTitle(), articleFoundBySlug.getTitle());
+        Assert.assertEquals(dto.getArticle().getTitle(), articleFoundBySlug.getTitle());
     }
 
     @Test

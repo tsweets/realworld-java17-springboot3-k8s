@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  * 5/19/23 - 1:30 PM
  */
 @Entity
-@Table(name = "article") // NOTE: "user" is a keyword for some DBs, so don't use
+@Table(name = "tag") // NOTE: "user" is a keyword for some DBs, so don't use
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

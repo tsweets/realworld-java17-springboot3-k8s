@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +47,7 @@ public class ArticleController {
         }
     }
     */
-    @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @Operation(description = "Create Article")
     @ApiResponses(value = {
@@ -84,7 +85,7 @@ public class ArticleController {
             @ApiResponse(responseCode = "200", description = "Article Found")
     })
     public ArticleDTO getArticle(@PathVariable String slug) {
-        log.info("REST (get): /api/articles");
+        log.info("REST (get): /api/articles/{slug}");
         log.info("Slug: {}", slug);
 
         Article article = articleService.findArticleBySlug(slug);
@@ -100,7 +101,7 @@ public class ArticleController {
             @ApiResponse(responseCode = "200", description = "Article Found")
     })
     public ArticleDTO updateArticle(@PathVariable String slug, @RequestBody ArticleUpdateDTO dto, @RequestHeader (name="Authorization") String token) {
-        log.info("REST (put): /api/articles");
+        log.info("REST (put): /api/articles/{slug}");
         log.info("Slug: {}", slug);
         log.info("Token: {}", token);
         log.info("Article Data: {}", dto);
@@ -151,7 +152,7 @@ public class ArticleController {
             count++;
         }
 
-        //Collections.reverse(dtos); // The correct order
+        Collections.reverse(dtos.getArticles()); // The correct order
         dtos.setArticlesCount(count);
         return dtos;
     }
@@ -213,7 +214,7 @@ public class ArticleController {
             count++;
         }
         dtos.setArticlesCount(count);
-        // Collections.reverse(dtos); // The correct order
+        Collections.reverse(dtos.getArticles()); // The correct order
         return dtos;
     }
 

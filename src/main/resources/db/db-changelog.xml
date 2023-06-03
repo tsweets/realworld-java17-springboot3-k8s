@@ -52,26 +52,31 @@
          </column>
          <!-- This doesn't go here -->
          <column name="favorited" type="boolean">
-            <constraints nullable="false" />
+             <constraints nullable="false"/>
          </column>
-         <column name="created_at" type="datetime">
-            <constraints nullable="false" />
-         </column>
-         <column name="updated_at" type="datetime">
-            <constraints nullable="false" />
-         </column>
+          <column name="created_at" type="datetime">
+              <constraints nullable="false"/>
+          </column>
+          <column name="updated_at" type="datetime">
+              <constraints nullable="false"/>
+          </column>
       </createTable>
-      <addAutoIncrement tableName="article" columnName="id" columnDataType="bigint" incrementBy="1"/>
-      <createTable tableName="article_tag">
-         <column name="tag" type="bigint">
-            <constraints nullable="false"/>
-         </column>
-         <column name="tag_id" type="bigint">
-            <constraints nullable="false"/>
-         </column>
-      </createTable>
-      <createTable tableName="comment">
-         <column name="id" type="bigint">
+       <addAutoIncrement tableName="article" columnName="id" columnDataType="bigint" incrementBy="1"/>
+       <createTable tableName="tag">
+           <column name="tag" type="varchar(20)">
+               <constraints primaryKey="true" nullable="false"/>
+           </column>
+       </createTable>
+       <createTable tableName="article_tag">
+           <column name="tag" type="varchar(20)">
+               <constraints nullable="false"/>
+           </column>
+           <column name="article_id" type="bigint">
+               <constraints nullable="false"/>
+           </column>
+       </createTable>
+       <createTable tableName="comment">
+           <column name="id" type="bigint">
             <constraints primaryKey="true" nullable="false"/>
          </column>
          <column name="owner_id" type="bigint">

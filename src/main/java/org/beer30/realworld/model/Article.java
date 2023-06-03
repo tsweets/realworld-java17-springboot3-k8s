@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import org.beer30.realworld.domain.ArticleEmbeddedDTO;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author tsweets
@@ -56,9 +56,9 @@ public class Article {
     @ManyToMany
     @JoinTable(
             name = "article_tag",
-            joinColumns = @JoinColumn(name = "tag"),
-            inverseJoinColumns = @JoinColumn(name = "article_id"))
-    private Set<Tag> tagList = new HashSet<>();
+            joinColumns = @JoinColumn(name = "article_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag"))
+    private List<Tag> tagList = new ArrayList<>();
     private Instant createdAt;
     private Instant updatedAt;
     private Boolean favorited;
@@ -80,6 +80,14 @@ public class Article {
         if (this.updatedAt != null) {
             articleEmbedded.setUpdatedAt(this.updatedAt.toString());
         }
+
+        List<String> tagString = new ArrayList<>();
+        for (Tag tag : tagList) {
+            tagString.add(tag.getTag());
+        }
+        String[] tagListArray = tagString.toArray(new String[0]);
+
+        articleEmbedded.setTagList(tagListArray);
         return articleEmbedded;
     }
 

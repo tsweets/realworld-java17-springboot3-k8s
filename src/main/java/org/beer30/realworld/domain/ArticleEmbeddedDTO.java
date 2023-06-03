@@ -11,7 +11,7 @@ public class ArticleEmbeddedDTO {
         private String title;
         private String description;
         private String body;
-        private String tagList; //Todo
+        private String[] tagList;
         private String createdAt;
         private String updatedAt;
         private Boolean favorited;

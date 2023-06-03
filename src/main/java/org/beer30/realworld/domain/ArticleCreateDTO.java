@@ -27,16 +27,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @Schema(description = "Create Article Request DTO")
 public class ArticleCreateDTO {
-    @Schema(description = "Title of the article", example = "How to train your dragon")
-    @NotNull
-    String title;
-    @Schema(description = "Description",example = "Ever wonder how?")
-    @NotNull
-    String description;
-    @Schema(description = "Article body", example = "You have to believe")
-    @NotNull
-    String body;
-    //TODO tags should be a list from a table - this field is optional
-    @Schema(description = "List of tags for the article (optional)", example = "[\"reactjs\", \"angularjs\", \"dragons\"]")
-    String tagList;
+    private Article article;
+
+    @Data
+    @Builder
+    static public class Article {
+        @Schema(description = "Title of the article", example = "How to train your dragon")
+        @NotNull
+        String title;
+        @Schema(description = "Description", example = "Ever wonder how?")
+        @NotNull
+        String description;
+        @Schema(description = "Article body", example = "You have to believe")
+        @NotNull
+        String body;
+        //TODO tags should be a list from a table - this field is optional
+        @Schema(description = "List of tags for the article (optional)", example = "[\"reactjs\", \"angularjs\", \"dragons\"]")
+        String[] tagList;
+    }
 }
