@@ -5,10 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.beer30.realworld.domain.ArticleCreateDTO;
-import org.beer30.realworld.domain.ArticleDTO;
-import org.beer30.realworld.domain.ArticleUpdateDTO;
-import org.beer30.realworld.domain.AuthorDTO;
+import org.beer30.realworld.domain.*;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
@@ -19,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -72,12 +67,13 @@ public class ArticleController {
 
         Article articleCreated = articleService.createArticle(dto, author);
 
-        ArticleDTO articleCreatedDto = articleCreated.toDto(); // Mostly filled out DTO
+        ArticleEmbeddedDTO articleCreatedDto = articleCreated.toDto(); // Mostly filled out DTO
         AuthorDTO authorDTO = AuthorDTO.builder()
                 .build();
         articleCreatedDto.setAuthor(authorDTO);
 
-        return articleCreatedDto;
+        ArticleDTO articleDTO = ArticleDTO.builder().article(articleCreatedDto).build();
+        return articleDTO;
     }
 
     // Get Article
@@ -92,7 +88,7 @@ public class ArticleController {
         log.info("Slug: {}", slug);
 
         Article article = articleService.findArticleBySlug(slug);
-        ArticleDTO articleDTO = article.toDto();
+        ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
 
         return articleDTO;
     }
@@ -109,7 +105,7 @@ public class ArticleController {
         log.info("Token: {}", token);
         log.info("Article Data: {}", dto);
         String email = tokenService.decodeToken(token).getSubject();
-        log.info("User(email): {}",email );
+        log.info("User(email): {}", email);
 
         User author = userService.findUserByEmail(email);
         if (author == null) {
@@ -119,7 +115,9 @@ public class ArticleController {
 
         Article article = articleService.updateArticleBySlug(slug, dto);
 
-        return article.toDto();
+        ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
+
+        return articleDTO;
     }
 
 
@@ -140,18 +138,21 @@ public class ArticleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Articles Found")
     })
-    public List<ArticleDTO> listArticle() {
+    public ArticleMulitpleDTO listArticle() {
         log.info("REST (get): /api/articles");
-      //  log.info("Slug: {}", slug);
+        //  log.info("Slug: {}", slug);
 
         List<Article> articles = articleService.findArticles();
 
-        List<ArticleDTO> dtos = new ArrayList<>();
+        ArticleMulitpleDTO dtos = new ArticleMulitpleDTO();
+        int count = 0;
         for (Article article : articles) {
-            dtos.add(article.toDto());
+            dtos.getArticles().add(article.toDto());
+            count++;
         }
 
-        Collections.reverse(dtos); // The correct order
+        //Collections.reverse(dtos); // The correct order
+        dtos.setArticlesCount(count);
         return dtos;
     }
 
@@ -190,7 +191,7 @@ public class ArticleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Articles by authors I follow")
     })
-    public List<ArticleDTO> feedArticles(@RequestHeader(name = "Authorization") String token) {
+    public ArticleMulitpleDTO feedArticles(@RequestHeader(name = "Authorization") String token) {
         log.info("REST (get): /api/articles/feed");
         //  log.info("Slug: {}", slug);
         String email = tokenService.decodeToken(token).getSubject();
@@ -204,12 +205,15 @@ public class ArticleController {
 
         List<Article> articles = articleService.findFeedArticles(user);
 
-        List<ArticleDTO> dtos = new ArrayList<>();
+//        List<ArticleDTO> dtos = new ArrayList<>();
+        ArticleMulitpleDTO dtos = new ArticleMulitpleDTO();
+        int count = 0;
         for (Article article : articles) {
-            dtos.add(article.toDto());
+            dtos.getArticles().add(article.toDto());
+            count++;
         }
-
-        Collections.reverse(dtos); // The correct order
+        dtos.setArticlesCount(count);
+        // Collections.reverse(dtos); // The correct order
         return dtos;
     }
 

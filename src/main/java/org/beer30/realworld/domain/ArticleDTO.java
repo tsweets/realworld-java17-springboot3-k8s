@@ -37,14 +37,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @Schema(description = "Articles")
 public class ArticleDTO {
-    private String slug;
-    private String title;
-    private String description;
-    private String body;
-    private String tagList; //Todo
-    private String createdAt;
-    private String updatedAt;
-    private Boolean favorited;
-    private AuthorDTO author;
+    private ArticleEmbeddedDTO article;
+
+
+   /* @Data
+    @Builder
+    static public class Article {
+        private String slug;
+        private String title;
+        private String description;
+        private String body;
+        private String tagList; //Todo
+        private String createdAt;
+        private String updatedAt;
+        private Boolean favorited;
+        private AuthorDTO author;
+    }*/
 
 }

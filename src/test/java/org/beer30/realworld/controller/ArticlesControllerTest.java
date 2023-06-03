@@ -2,9 +2,11 @@ package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleDTO;
+import org.beer30.realworld.domain.ArticleMulitpleDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.User;
@@ -61,7 +63,7 @@ public class ArticlesControllerTest {
     @Autowired
     ArticleService articleService;
 
-    Gson gson = new Gson();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     @BeforeAll
     public void setup() {
@@ -123,11 +125,12 @@ public class ArticlesControllerTest {
                 .andReturn();
         Assert.assertNotNull(resultGetAllArticles);
         String articleListString = resultGetAllArticles.getResponse().getContentAsString();
-        Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>() {
-        }.getType();
-        List<ArticleDTO> articleDTOs = gson.fromJson(articleListString, listOfArticleDtos);
+        System.out.println(articleListString);
+    /*    Type listOfArticleDtos = new TypeToken<ArrayList<ArticleDTO>>() {
+        }.getType();*/
+        ArticleMulitpleDTO articleDTOs = gson.fromJson(articleListString, ArticleMulitpleDTO.class);
         Assert.assertNotNull(articleDTOs);
-        Assert.assertEquals(6, articleDTOs.size());
+        Assert.assertEquals(6, articleDTOs.getArticles().size());
 
     }
 
@@ -154,21 +157,21 @@ public class ArticlesControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getTitle()))
                 .andReturn();
 
         ArticleDTO articleDTO = gson.fromJson(result.getResponse().getContentAsString(), ArticleDTO.class);
         Assert.assertNotNull(articleDTO);
         System.out.println("Article Returned: " + articleDTO);
 
-        String articleSlug = articleDTO.getSlug();
+        String articleSlug = articleDTO.getArticle().getSlug();
         MvcResult resultGetArticle = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/{slug}", articleSlug)
                         .contentType(MediaType.APPLICATION_JSON))
 //                        .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(dto.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getTitle()))
                 .andReturn();
         Assert.assertNotNull(resultGetArticle);
 
@@ -177,14 +180,14 @@ public class ArticlesControllerTest {
         Assert.assertNotNull(articleFound);
         ArticleUpdateDTO articleUpdateDTO = new ArticleUpdateDTO();
         articleUpdateDTO.setTitle(faker.book().title() + " UPDATED");
-        MvcResult resultUpdateArticle = this.mockMvc.perform(MockMvcRequestBuilders.put("/api/articles/{slug}", articleFound.getSlug())
+        MvcResult resultUpdateArticle = this.mockMvc.perform(MockMvcRequestBuilders.put("/api/articles/{slug}", articleFound.getArticle().getSlug())
                         .content(gson.toJson(articleUpdateDTO))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(articleUpdateDTO.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(articleUpdateDTO.getTitle()))
                 .andReturn();
 
         ArticleDTO resultArticleUpdatedDTO = gson.fromJson(resultUpdateArticle.getResponse().getContentAsString(), ArticleDTO.class);
@@ -210,7 +213,7 @@ public class ArticlesControllerTest {
         Assert.assertNotNull(articleDTOs);
         Assert.assertTrue(articleDTOs.size() >= 3);
         // First one in the list should be the last one created if sorting is working
-        Assert.assertEquals(article3.getTitle(), articleDTOs.get(0).getTitle());
+        Assert.assertEquals(article3.getTitle(), articleDTOs.get(0).getArticle().getTitle());
 
   /* TODO - Need to test
     Query Parameters:
@@ -229,12 +232,12 @@ public class ArticlesControllerTest {
 
         // Put at end so I have some test data
         // Do Last (Delete)
-        MvcResult resultDeleteArticle = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}", resultArticleUpdatedDTO.getSlug())
+        MvcResult resultDeleteArticle = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}", resultArticleUpdatedDTO.getArticle().getSlug())
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
-        Assert.assertNull(articleService.findArticleBySlug(resultArticleUpdatedDTO.getSlug()));
+        Assert.assertNull(articleService.findArticleBySlug(resultArticleUpdatedDTO.getArticle().getSlug()));
 
     }
 

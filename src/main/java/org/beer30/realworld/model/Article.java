@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.beer30.realworld.domain.ArticleDTO;
-import org.beer30.realworld.domain.AuthorDTO;
+import org.beer30.realworld.domain.ArticleEmbeddedDTO;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -67,9 +65,9 @@ public class Article {
     private Long favoritesCount;
     private Long authorId;
 
-    public ArticleDTO toDto() {
+    public ArticleEmbeddedDTO toDto() {
 
-        ArticleDTO dto = ArticleDTO.builder()
+        ArticleEmbeddedDTO articleEmbedded = ArticleEmbeddedDTO.builder()
                 .body(this.body)
                 .slug(this.slug)
                 .title(this.title)
@@ -77,12 +75,12 @@ public class Article {
                 .description(this.description)
                 .build();
         if (this.createdAt != null) {
-            dto.setCreatedAt(this.createdAt.toString());
+            articleEmbedded.setCreatedAt(this.createdAt.toString());
         }
         if (this.updatedAt != null) {
-            dto.setUpdatedAt(this.updatedAt.toString());
+            articleEmbedded.setUpdatedAt(this.updatedAt.toString());
         }
-        return dto;
+        return articleEmbedded;
     }
 
 }
