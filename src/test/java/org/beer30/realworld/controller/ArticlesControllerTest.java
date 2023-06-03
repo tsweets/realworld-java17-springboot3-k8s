@@ -1,5 +1,6 @@
 package org.beer30.realworld.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,6 +9,7 @@ import org.beer30.realworld.domain.ArticleDTO;
 import org.beer30.realworld.domain.ArticleMulitpleDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Tag;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.UserService;
@@ -61,6 +63,9 @@ public class ArticlesControllerTest {
     ArticleService articleService;
 
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @BeforeAll
     public void setup() {
@@ -132,7 +137,6 @@ public class ArticlesControllerTest {
     }
 
     @Test
-    @Transactional
     public void createArticleTest() throws Exception {
         Faker faker = new Faker();
 
@@ -177,9 +181,12 @@ public class ArticlesControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.article.title").value(dto.getArticle().getTitle()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.article.tagList[0]").value(dto.getArticle().getTagList()[0]))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.tagList[0]").value(dto.getArticle().getTagList()[2])) // Apparent the API Test suite is strict on the order
                 .andReturn();
         Assert.assertNotNull(resultGetArticle);
+        ArticleDTO resultGetArticle2 = gson.fromJson(resultGetArticle.getResponse().getContentAsString(), ArticleDTO.class);
+        Assert.assertNotNull(resultGetArticle2);
+        System.out.println("Article 2 Returned: " + resultGetArticle2);
 
 
         ArticleDTO articleFound = gson.fromJson(resultGetArticle.getResponse().getContentAsString(), ArticleDTO.class);
@@ -200,6 +207,9 @@ public class ArticlesControllerTest {
 
         // Test List Articles - NOTE: this has a bunch of params to test
         // 1st lets add couple more Articles.
+                                /*        .requestMatchers(HttpMethod.POST, "/api/articles/{slug}/*").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/articles/{slug}/*").authenticated() */
+
         Article article2 = createTestArticle(articleService, testUser);
         Thread.sleep(1000L); // make sure this is a time delay so that sorting works predictably
         Article article3 = createTestArticle(articleService, testUser);
@@ -247,5 +257,82 @@ public class ArticlesControllerTest {
 
     }
 
+
+    @Test
+    public void addLikeAPITest() throws Exception {
+        // Create Test Author
+        User testAuthor = ControllerTestUtils.createTestUser(userService);
+
+        // Create Test User
+        User testUser = ControllerTestUtils.createTestUser(userService);
+
+        // Token for requesting user
+        String token = ControllerTestUtils.getToken(this.mockMvc, testUser.getEmail(), testUser.getPassword());
+
+        Article article = ControllerTestUtils.createTestArticle(articleService, testAuthor);
+
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/articles/{slug}/favorite", article.getSlug())
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.favoritesCount").value("1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.favorited").value("true"))
+
+                .andReturn();
+
+
+        Assert.assertNotNull(result);
+
+
+        MvcResult resultUnlike = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}/favorite", article.getSlug())
+                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.favoritesCount").value("0"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.article.favorited").value("false"))
+                .andReturn();
+
+    }
+
+
+    @Test
+    public void filterTest() throws Exception {
+        // Create Test Author
+        User testAuthor = ControllerTestUtils.createTestUser(userService);
+
+        // Create Test User
+        User testUser = ControllerTestUtils.createTestUser(userService);
+
+        Article article1 = ControllerTestUtils.createTestArticle(articleService, testAuthor);
+        Article article2 = ControllerTestUtils.createTestArticle(articleService, testAuthor);
+
+        List<Tag> tagList1 = article1.getTagList();
+        List<Tag> tagList2 = article2.getTagList();
+        Assert.assertNotNull(tagList1);
+        Assert.assertNotNull(tagList2);
+
+
+        MvcResult resultGetAllArticles = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles")
+                        .contentType(MediaType.APPLICATION_JSON))
+//                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.articlesCount").value(2))
+                .andReturn();
+        Assert.assertNotNull(resultGetAllArticles);
+
+        MvcResult resultGetSomeArticles1 = this.mockMvc.perform(MockMvcRequestBuilders.get("/api/articles?tag={tag}", tagList2.get(0).getTag())
+                        .contentType(MediaType.APPLICATION_JSON))
+//                        .header("Authorization", "Token " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.articlesCount").value(1))
+                .andReturn();
+
+    }
 
 }

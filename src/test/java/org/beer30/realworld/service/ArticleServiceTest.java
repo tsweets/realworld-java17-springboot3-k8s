@@ -4,7 +4,10 @@ import com.github.javafaker.Faker;
 import org.beer30.realworld.controller.ControllerTestUtils;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Favorite;
+import org.beer30.realworld.model.Tag;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.repository.ArticleRepository;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +25,10 @@ public class ArticleServiceTest {
 
     @Autowired
     ArticleService articleService;
+
+    @Autowired
+    ArticleRepository articleRepository;
+
 
     @Autowired
     UserService userService;
@@ -47,6 +54,70 @@ public class ArticleServiceTest {
         Article articleFoundBySlug = articleService.findArticleBySlug(article.getSlug());
         Assert.assertNotNull(articleFoundBySlug);
         Assert.assertEquals(dto.getArticle().getTitle(), articleFoundBySlug.getTitle());
+    }
+
+    @Test
+    @Transactional
+    public void testArticleTags() {
+        User author = ControllerTestUtils.createTestUser(userService);
+        Article article = ControllerTestUtils.createTestArticle(articleService, author);
+
+        Assert.assertNotNull(article);
+
+        // Grab from DB
+        Article articleFound = articleService.findArticleBySlug(article.getSlug());
+        Assert.assertNotNull(articleFound);
+        List<Tag> tags = articleFound.getTagList();
+        Assert.assertNotNull(tags);
+        Assert.assertEquals(3, tags.size());
+        tags.stream().forEach(tag -> System.out.println(tag.getTag()));
+
+        // Update the Article
+        articleFound.setBody("UPDATED: " + article.getBody());
+        Article articleUpdated = articleRepository.save(articleFound);
+        Assert.assertNotNull(articleUpdated);
+
+    }
+
+    @Test
+    @Transactional
+    public void testArticleLikes() {
+        User author = ControllerTestUtils.createTestUser(userService);
+        Article article = ControllerTestUtils.createTestArticle(articleService, author);
+
+        User reader1 = ControllerTestUtils.createTestUser(userService);
+        User reader2 = ControllerTestUtils.createTestUser(userService);
+
+        Assert.assertNotNull(article);
+
+        // Grab from DB
+        Article articleFound = articleService.findArticleBySlug(article.getSlug());
+        Assert.assertNotNull(articleFound);
+        List<Tag> tags = articleFound.getTagList();
+        Assert.assertNotNull(tags);
+        Assert.assertEquals(3, tags.size());
+        tags.stream().forEach(tag -> System.out.println(tag.getTag()));
+
+        Long likes = articleService.getLikes(articleFound);
+        Assert.assertEquals(0, likes.longValue());
+
+        // Lets add a like!
+        Favorite fav1 = articleService.addLike(articleFound, reader1);
+        Assert.assertNotNull(fav1);
+        likes = articleService.getLikes(articleFound);
+        Assert.assertEquals(1, likes.longValue());
+
+        Favorite fav2 = articleService.addLike(articleFound, reader2);
+        Assert.assertNotNull(fav2);
+        likes = articleService.getLikes(articleFound);
+        Assert.assertEquals(2, likes.longValue());
+
+        // Unlike
+        articleService.unLike(articleFound, reader1);
+        likes = articleService.getLikes(articleFound);
+        Assert.assertEquals(1, likes.longValue());
+
+
     }
 
     @Test

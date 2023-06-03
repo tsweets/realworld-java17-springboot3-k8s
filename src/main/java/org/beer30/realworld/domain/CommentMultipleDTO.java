@@ -6,15 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Schema(description = "Article Comment")
-public class CommentDTO {
+@Schema(description = "Comments")
+public class CommentMultipleDTO {
+    private List<CommentEmbeddedDTO> comments = new ArrayList<>();
 
-    private CommentEmbeddedDTO comment;
 }
-
-
-

@@ -15,6 +15,7 @@ public class ArticleEmbeddedDTO {
         private String createdAt;
         private String updatedAt;
         private Boolean favorited;
+        private Long favoritesCount;
         private AuthorDTO author;
 
 }

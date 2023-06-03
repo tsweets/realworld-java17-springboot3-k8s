@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.beer30.realworld.domain.CommentDTO;
+import org.beer30.realworld.domain.CommentEmbeddedDTO;
 
 import java.time.Instant;
 
@@ -27,8 +27,8 @@ public class Comment {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public CommentDTO toDto() {
-        CommentDTO dto = CommentDTO.builder()
+    public CommentEmbeddedDTO toDto() {
+        CommentEmbeddedDTO dto = CommentEmbeddedDTO.builder()
                 // .authorId(ownerId)
                 .id(id)
                 .body(body)

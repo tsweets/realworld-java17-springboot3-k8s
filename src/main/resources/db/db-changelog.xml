@@ -47,9 +47,6 @@
          <column name="author_id" type="bigint">
             <constraints nullable="false" />
          </column>
-         <column name="favorites_count" type="bigint">
-            <constraints nullable="false" />
-         </column>
          <!-- This doesn't go here -->
          <column name="favorited" type="boolean">
              <constraints nullable="false"/>
@@ -63,12 +60,29 @@
       </createTable>
        <addAutoIncrement tableName="article" columnName="id" columnDataType="bigint" incrementBy="1"/>
        <createTable tableName="tag">
+           <column name="id" type="bigint">
+               <constraints primaryKey="true" nullable="false"/>
+           </column>
            <column name="tag" type="varchar(20)">
                <constraints primaryKey="true" nullable="false"/>
            </column>
        </createTable>
+       <addAutoIncrement tableName="tag" columnName="id" columnDataType="bigint" incrementBy="1"/>
+       <createTable tableName="favorite">
+           <column name="id" type="bigint">
+               <constraints primaryKey="true" nullable="false"/>
+           </column>
+           <column name="user_id" type="bigint">
+               <constraints nullable="false"/>
+           </column>
+           <column name="article_id" type="bigint">
+               <constraints nullable="false"/>
+           </column>
+       </createTable>
+       <addAutoIncrement tableName="favorite" columnName="id" columnDataType="bigint" incrementBy="1"/>
+
        <createTable tableName="article_tag">
-           <column name="tag" type="varchar(20)">
+           <column name="tag_id" type="bigint">
                <constraints nullable="false"/>
            </column>
            <column name="article_id" type="bigint">

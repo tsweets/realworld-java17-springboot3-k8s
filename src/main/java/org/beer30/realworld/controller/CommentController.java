@@ -5,9 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.beer30.realworld.domain.AuthorDTO;
-import org.beer30.realworld.domain.CommentAddDTO;
-import org.beer30.realworld.domain.CommentDTO;
+import org.beer30.realworld.domain.*;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.Comment;
 import org.beer30.realworld.model.User;
@@ -49,13 +47,16 @@ public class CommentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Comment Added")
     })
+    //    public CommentDTO addComment(@RequestBody CommentAddDTO dto, @PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
     public CommentDTO addComment(@RequestBody CommentAddDTO dto, @PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
         log.info("REST (post): /api/articles/{slug}/comments");
         log.info("Token: {}", token);
-        log.info("Comment Data: {}", dto);
+        //log.info("Comment Data: {}", dto);
+        //CommentAddDTO dto = null;
         String email = tokenService.decodeToken(token).getSubject();
         log.info("User(email): {}", email);
         log.info("Slug: {}", slug);
+        //   String slug = "hey";
 
         User owner = userService.findUserByEmail(email);
         if (owner == null) {
@@ -65,17 +66,17 @@ public class CommentController {
 
         Article article = articleService.findArticleBySlug(slug);
 
-        Comment comment = commentService.addComment(article, owner, dto.getBody());
-        CommentDTO commentDTO = comment.toDto();
-
+        Comment comment = commentService.addComment(article, owner, dto.getComment().getBody());
+        CommentEmbeddedDTO commentEmbeddedDTO = comment.toDto();
         AuthorDTO authorDto = new AuthorDTO();
         authorDto.setBio(owner.getBio());
         authorDto.setImage(owner.getImageUrl());
         Boolean followingFlag = getFollowingFlag(owner, article);
         authorDto.setFollowing(followingFlag);
         authorDto.setUsername(owner.getUsername());
-        commentDTO.setAuthor(authorDto);
+        commentEmbeddedDTO.setAuthor(authorDto);
 
+        CommentDTO commentDTO = CommentDTO.builder().comment(commentEmbeddedDTO).build();
         return commentDTO;
     }
 
@@ -100,7 +101,7 @@ public class CommentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Article Comments")
     })
-    public List<CommentDTO> listComments(@PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
+    public CommentMultipleDTO listComments(@PathVariable String slug, @RequestHeader(name = "Authorization", required = false) String token) {
         log.info("REST (get): /api/articles/{slug}/comments");
         log.info("Slug: {}", slug);
         log.info("Token: {}", token);
@@ -121,9 +122,10 @@ public class CommentController {
 
         Article article = articleService.findArticleBySlug(slug);
         List<Comment> commentList = commentService.getComments(article);
-        List<CommentDTO> dtos = new ArrayList<>();
+        List<CommentEmbeddedDTO> dtos = new ArrayList<>();
         for (Comment comment : commentList) {
-            CommentDTO dto = comment.toDto();
+            CommentEmbeddedDTO dto = comment.toDto();
+
             Long commentAuthorId = comment.getOwnerId();
             User commentAuthor = userService.findById(commentAuthorId);
             AuthorDTO authorDTO = AuthorDTO.builder()
@@ -133,11 +135,12 @@ public class CommentController {
                     .build();
             authorDTO.setFollowing(getFollowingFlag(commentAuthor, article));
             dto.setAuthor(authorDTO);
+
             dtos.add(dto);
         }
         Collections.reverse(dtos);
-
-        return dtos;
+        CommentMultipleDTO commentMultipleDTO = CommentMultipleDTO.builder().comments(dtos).build();
+        return commentMultipleDTO;
     }
 
 
@@ -147,7 +150,7 @@ public class CommentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Comment Deleted")
     })
-    public void addDeleteComment(@PathVariable String slug, @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
+    public void deleteComment(@PathVariable String slug, @PathVariable Long id, @RequestHeader(name = "Authorization") String token) {
         log.info("REST (post): /api/articles/{slug}/comments");
         log.info("Token: {}", token);
         log.info("Slug: {}", slug);

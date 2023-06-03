@@ -6,9 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.beer30.realworld.domain.ArticleEmbeddedDTO;
+import org.hibernate.annotations.Cascade;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -57,12 +59,12 @@ public class Article {
     @JoinTable(
             name = "article_tag",
             joinColumns = @JoinColumn(name = "article_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag"))
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
     private List<Tag> tagList = new ArrayList<>();
     private Instant createdAt;
     private Instant updatedAt;
     private Boolean favorited;
-    private Long favoritesCount;
     private Long authorId;
 
     public ArticleEmbeddedDTO toDto() {
@@ -85,6 +87,7 @@ public class Article {
         for (Tag tag : tagList) {
             tagString.add(tag.getTag());
         }
+        Collections.reverse(tagString);
         String[] tagListArray = tagString.toArray(new String[0]);
 
         articleEmbedded.setTagList(tagListArray);

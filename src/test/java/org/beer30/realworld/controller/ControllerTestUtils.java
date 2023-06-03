@@ -6,6 +6,7 @@ import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Tag;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.service.ArticleService;
 import org.beer30.realworld.service.UserService;
@@ -18,6 +19,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author tsweets
@@ -33,7 +36,11 @@ public class ControllerTestUtils {
         article.setTitle(faker.book().title());
         article.setDescription(faker.rickAndMorty().quote());
         article.setBody(faker.lorem().paragraph(5));
-
+        List<Tag> tagList = new ArrayList<>();
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_1").build());
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_2").build());
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_3").build());
+        article.setTagList(tagList);
         return articleService.createArticle(article, author);
     }
 

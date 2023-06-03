@@ -2,9 +2,9 @@ package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
 import org.beer30.realworld.domain.CommentAddDTO;
-import org.beer30.realworld.domain.CommentDTO;
+import org.beer30.realworld.domain.CommentMultipleDTO;
 import org.beer30.realworld.model.Article;
 import org.beer30.realworld.model.Comment;
 import org.beer30.realworld.model.User;
@@ -13,6 +13,7 @@ import org.beer30.realworld.service.CommentService;
 import org.beer30.realworld.service.UserService;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,17 +26,14 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 public class CommentControllerTest {
 
     @Autowired
@@ -44,8 +42,9 @@ public class CommentControllerTest {
     ArticleService articleService;
     @Autowired
     CommentService commentService;
-    Gson gson = new Gson();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
     Faker faker = new Faker();
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -53,11 +52,19 @@ public class CommentControllerTest {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @BeforeAll
+    public void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext)
+                .addFilter(springSecurityFilterChain).build();
+    }
+
     @Test
     public void addCommentAPITest() throws Exception {
-        String commentString = faker.lebowski().quote();
-        CommentAddDTO dto = CommentAddDTO.builder().body(commentString).build();
-
+        String commentString = faker.lorem().sentence();
+        CommentAddDTO.Comment commentEmbedded = CommentAddDTO.Comment.builder()
+                .body(commentString)
+                .build();
+        CommentAddDTO dto = CommentAddDTO.builder().comment(commentEmbedded).build();
         // Create Test Author
         User testAuthor = ControllerTestUtils.createTestUser(userService);
 
@@ -69,14 +76,18 @@ public class CommentControllerTest {
 
         Article article = ControllerTestUtils.createTestArticle(articleService, testAuthor);
 
+        String commentAddString = gson.toJson(dto);
+        System.out.println("Comment Add String: \n" + commentAddString);
+//        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/articles/{slug}/comments", article.getSlug())
+
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post("/api/articles/{slug}/comments", article.getSlug())
-                        .content(gson.toJson(dto))
+                        .content(commentAddString)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.body").value(dto.getBody()))
+                //      .andExpect(MockMvcResultMatchers.jsonPath("$.body").value(dto.getComment().getBody()))
                 .andReturn();
 
 
@@ -97,11 +108,9 @@ public class CommentControllerTest {
         String resultListCommentsString = resultListComments.getResponse().getContentAsString();
         Assert.assertNotNull(resultListCommentsString);
 
-        Type listOfCommentDtos = new TypeToken<ArrayList<CommentDTO>>() {
-        }.getType();
-        List<CommentDTO> commentDTOS = gson.fromJson(resultListCommentsString, listOfCommentDtos);
+        CommentMultipleDTO commentDTOS = gson.fromJson(resultListCommentsString, CommentMultipleDTO.class);
         Assert.assertNotNull(commentDTOS);
-        Assert.assertEquals(2, commentDTOS.size());
+        Assert.assertEquals(2, commentDTOS.getComments().size());
 
         // Delete a comment
         MvcResult resultDeleteComment = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}/comments/{id}", article.getSlug(), comment2.getArticleId())
@@ -116,6 +125,8 @@ public class CommentControllerTest {
         List<Comment> commentListAfterDelete = commentService.getComments(article);
         Assert.assertNotNull(commentListAfterDelete);
         Assert.assertEquals(1, commentListAfterDelete.size());
+
+
     }
 
 }

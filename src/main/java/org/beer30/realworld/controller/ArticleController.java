@@ -7,8 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.beer30.realworld.domain.*;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Favorite;
 import org.beer30.realworld.model.User;
+import org.beer30.realworld.repository.TagRepository;
 import org.beer30.realworld.service.ArticleService;
+import org.beer30.realworld.service.CommentService;
 import org.beer30.realworld.service.TokenService;
 import org.beer30.realworld.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,11 @@ public class ArticleController {
 
     @Autowired
     private ArticleService articleService;
+
+    @Autowired
+    CommentService commentService;
+    @Autowired
+    private TagRepository tagRepository;
 
     /* Create Article
     {
@@ -74,6 +82,9 @@ public class ArticleController {
         articleCreatedDto.setAuthor(authorDTO);
 
         ArticleDTO articleDTO = ArticleDTO.builder().article(articleCreatedDto).build();
+        articleDTO.getArticle().setFavoritesCount(articleService.getLikes(articleCreated));
+        articleDTO.getArticle().setFavorited(articleService.isFavorted(articleCreated, author));
+
         return articleDTO;
     }
 
@@ -90,6 +101,8 @@ public class ArticleController {
 
         Article article = articleService.findArticleBySlug(slug);
         ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
+        articleDTO.getArticle().setFavoritesCount(articleService.getLikes(article));
+
 
         return articleDTO;
     }
@@ -117,6 +130,8 @@ public class ArticleController {
         Article article = articleService.updateArticleBySlug(slug, dto);
 
         ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
+        articleDTO.getArticle().setFavoritesCount(articleService.getLikes(article));
+        articleDTO.getArticle().setFavorited(articleService.isFavorted(article, author));
 
         return articleDTO;
     }
@@ -139,21 +154,34 @@ public class ArticleController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Articles Found")
     })
-    public ArticleMulitpleDTO listArticle() {
+    public ArticleMulitpleDTO listArticle(@RequestParam(name = "tag", required = false) String tag) {
         log.info("REST (get): /api/articles");
+        log.info("Param (tag): {}", tag);
         //  log.info("Slug: {}", slug);
+        org.beer30.realworld.model.Tag tagFilter = null;
+        if (tag != null && !tag.isEmpty()) {
+            tagFilter = tagRepository.findByTag(tag);
+        }
 
         List<Article> articles = articleService.findArticles();
 
         ArticleMulitpleDTO dtos = new ArticleMulitpleDTO();
-        int count = 0;
+        // int count = 0;
         for (Article article : articles) {
-            dtos.getArticles().add(article.toDto());
-            count++;
+            // Filter Tag
+            if (tagFilter != null) {
+                if (!article.getTagList().contains(tagFilter)) {
+                    continue;
+                }
+            }
+            ArticleEmbeddedDTO articleDTO = article.toDto();
+            articleDTO.setFavoritesCount(articleService.getLikes(article));
+            dtos.getArticles().add(articleDTO);
+            //   count++;
         }
 
         Collections.reverse(dtos.getArticles()); // The correct order
-        dtos.setArticlesCount(count);
+        dtos.setArticlesCount(dtos.getArticles().size());
         return dtos;
     }
 
@@ -210,7 +238,10 @@ public class ArticleController {
         ArticleMulitpleDTO dtos = new ArticleMulitpleDTO();
         int count = 0;
         for (Article article : articles) {
-            dtos.getArticles().add(article.toDto());
+            ArticleEmbeddedDTO articleDTO = article.toDto();
+            articleDTO.setFavoritesCount(articleService.getLikes(article));
+            articleDTO.setFavorited(articleService.isFavorted(article, user));
+            dtos.getArticles().add(articleDTO);
             count++;
         }
         dtos.setArticlesCount(count);
@@ -219,10 +250,70 @@ public class ArticleController {
     }
 
 
+    // Favorite Article  POST /api/articles/:slug/favorite
+    @PostMapping(value = "/{slug}/favorite", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Favorite (Like) Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Article Liked")
+    })
+    public ArticleDTO likeArticle(@PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
+        log.info("REST (post): /api/articles/{slug}/favorite");
+        log.info("Slug: {}", slug);
+        log.info("Token: {}", token);
+        String email = tokenService.decodeToken(token).getSubject();
+        log.info("User(email): {}", email);
+
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            log.error("Invalid User: {}", email);
+            throw new RuntimeException(); // TODO need custom exception
+        }
+
+        Article article = articleService.findArticleBySlug(slug);
+        Favorite favorite = articleService.addLike(article, user);
+
+
+        ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
+        articleDTO.getArticle().setFavoritesCount(articleService.getLikes(article));
+        articleDTO.getArticle().setFavorited(articleService.isFavorted(article, user));
+
+        return articleDTO;
+    }
+
+    // Delete Comment
+    @DeleteMapping(value = "/{slug}/favorite", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(description = "Un-Favorite (UnLike) Article")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Article Liked")
+    })
+    public ArticleDTO unlikeArticle(@PathVariable String slug, @RequestHeader(name = "Authorization") String token) {
+        log.info("REST (delete): /api/articles/{slug}/favorite");
+        log.info("Slug: {}", slug);
+        log.info("Token: {}", token);
+        String email = tokenService.decodeToken(token).getSubject();
+        log.info("User(email): {}", email);
+
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            log.error("Invalid User: {}", email);
+            throw new RuntimeException(); // TODO need custom exception
+        }
+
+        Article article = articleService.findArticleBySlug(slug);
+        articleService.unLike(article, user);
+
+
+        ArticleDTO articleDTO = ArticleDTO.builder().article(article.toDto()).build();
+        articleDTO.getArticle().setFavoritesCount(articleService.getLikes(article));
+        articleDTO.getArticle().setFavorited(articleService.isFavorted(article, user));
+        return articleDTO;
+    }
+
+
     // Add Comments
     // Get Comments
-    // Delete Comment
-    // Favorite Article
     // Unfavorite Article
     // Get Tags
 }

@@ -5,11 +5,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Favorite;
 import org.beer30.realworld.model.Tag;
 import org.beer30.realworld.model.User;
 import org.beer30.realworld.repository.ArticleRepository;
+import org.beer30.realworld.repository.FavoriteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -26,6 +29,10 @@ import java.util.Set;
 public class ArticleServiceImpl implements ArticleService {
     @Autowired
     ArticleRepository articleRepository;
+
+    @Autowired
+    FavoriteRepository favoriteRepository;
+
 
     @Override
     public Article findArticleBySlug(String slug) {
@@ -47,7 +54,6 @@ public class ArticleServiceImpl implements ArticleService {
         log.info("Service Call: createArticle(Model) - {} - by author {}", article, author);
 
         article.setFavorited(false);
-        article.setFavoritesCount(0L);
         article.setCreatedAt(Instant.now());
         article.setUpdatedAt(Instant.now());
         article.setAuthorId(author.getId());
@@ -72,7 +78,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (tagList != null) {
             List<Tag> tagListList = new ArrayList();
             for (String tag : tagList) {
-                tagListList.add(new Tag(tag));
+                tagListList.add(Tag.builder().tag(tag).build());
             }
             //Collections.reverse(tagListList);
             article.setTagList(tagListList);
@@ -88,6 +94,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public Article updateArticleBySlug(String slug, ArticleUpdateDTO dto) {
         log.info("Service Call: updateArticle - {} - {} ", slug,dto);
 
@@ -139,4 +146,39 @@ public class ArticleServiceImpl implements ArticleService {
         List<Article> articleList = articleRepository.findByAuthorIdIsIn(authorIds);
         return articleList;
     }
+
+    @Override
+    public Long getLikes(Article article) {
+        log.info("Service Call: getLikes for: {}", article);
+
+        return favoriteRepository.countFavoriteByArticleId(article.getId());
+    }
+
+    @Override
+    public Favorite addLike(Article article, User user) {
+        log.info("Service Call: addLIke for: {} and  user {}", article, user);
+        Favorite favorite = Favorite.builder().articleId(article.getId()).userId(user.getId()).build();
+        return favoriteRepository.save(favorite);
+    }
+
+    @Override
+    public void unLike(Article article, User user) {
+        log.info("Service Call: unLIke for: {} and  user {}", article, user);
+        Favorite favorite = favoriteRepository.findByArticleIdAndUserId(article.getId(), user.getId());
+        favoriteRepository.delete(favorite);
+    }
+
+    @Override
+    public Boolean isFavorted(Article article, User user) {
+        log.info("Service Call: isFavorited for: {} and  user {}", article, user);
+
+        Boolean favorited = Boolean.FALSE;
+        Favorite favorite = favoriteRepository.findByArticleIdAndUserId(article.getId(), user.getId());
+        if (favorite != null) {
+            return Boolean.TRUE;
+        }
+
+        return favorited;
+    }
+
 }

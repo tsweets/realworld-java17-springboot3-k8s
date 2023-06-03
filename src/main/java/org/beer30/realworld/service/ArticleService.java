@@ -3,6 +3,7 @@ package org.beer30.realworld.service;
 import org.beer30.realworld.domain.ArticleCreateDTO;
 import org.beer30.realworld.domain.ArticleUpdateDTO;
 import org.beer30.realworld.model.Article;
+import org.beer30.realworld.model.Favorite;
 import org.beer30.realworld.model.User;
 
 import java.util.List;
@@ -26,4 +27,14 @@ public interface ArticleService {
     List<Article> findArticles();
 
     List<Article> findFeedArticles(User user);
+
+    Long getLikes(Article article);
+
+    Favorite addLike(Article article, User user);
+
+    void unLike(Article article, User user);
+
+    Boolean isFavorted(Article article, User user);
+
+
 }
