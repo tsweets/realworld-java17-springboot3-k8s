@@ -19,11 +19,16 @@ public class ProfileServiceImpl implements ProfileService {
         ProfileDTO dto = null;
         User user = userService.findUserByUsername(username);
         if (user != null) {
-            dto = ProfileDTO.builder().bio(user.getBio()).image(user.getImageUrl()).username(user.getUsername()).build();
+            ProfileDTO.Profile profileEmbedded = ProfileDTO.Profile.builder()
+                    .bio(user.getBio())
+                    .image(user.getImageUrl())
+                    .username(user.getUsername())
+                    .build();
+            dto = ProfileDTO.builder().profile(profileEmbedded).build();
         }
         // If there is a requesting user determine if the requester is currently following
         if (requestingUser != null) {
-            dto.setFollowing(requestingUser.getFollowing().contains(user));
+            dto.getProfile().setFollowing(requestingUser.getFollowing().contains(user));
         }
 
         return dto;

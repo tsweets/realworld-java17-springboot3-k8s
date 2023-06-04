@@ -1,6 +1,7 @@
 package org.beer30.realworld.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import com.google.gson.Gson;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
@@ -40,13 +41,16 @@ public class UsersControllerTest {
 
     @Test
     public void testAuthenticateUser() throws Exception {
-        // /api/users/login
+        Faker faker = new Faker();
+        String email = faker.internet().emailAddress();
+        String username = faker.lorem().word();
+        String password = faker.lorem().word();
 
         // User to Test
         UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
-                .email("foo@example.com")
-                .username("foouser")
-                .password("password").build();
+                .email(email)
+                .username(username)
+                .password(password).build();
 
         UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder().user(userEmbedded).build();
         User userCreated = userService.createUser(userRegistrationDTO);
@@ -54,8 +58,8 @@ public class UsersControllerTest {
         Assert.assertNotNull(userCreated);
 
         UserLoginDTO.User userEmbeddedLogin = UserLoginDTO.User.builder()
-                .email("foo@example.com")
-                .password("password")
+                .email(email)
+                .password(password)
                 .build();
         UserLoginDTO userLoginDTO = UserLoginDTO.builder()
                 .user(userEmbeddedLogin)
@@ -76,9 +80,12 @@ public class UsersControllerTest {
 
     @Test
     public void testUserRegistration() throws Exception {
+        Faker faker = new Faker();
+        String username = faker.lorem().word();
+
         UserRegistrationDTO.User userEmbedded = UserRegistrationDTO.User.builder()
-                .username("user1")
-                .email("user1@example.com")
+                .username(username)
+                .email(username + "@example.com")
                 .password("user1-password")
                 .build();
         UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
@@ -93,7 +100,7 @@ public class UsersControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value("user1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value(username))
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
 

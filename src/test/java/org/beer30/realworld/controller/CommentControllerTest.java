@@ -113,7 +113,7 @@ public class CommentControllerTest {
         Assert.assertEquals(2, commentDTOS.getComments().size());
 
         // Delete a comment
-        MvcResult resultDeleteComment = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}/comments/{id}", article.getSlug(), comment2.getArticleId())
+        MvcResult resultDeleteComment = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/articles/{slug}/comments/{id}", article.getSlug(), comment2.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Token " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())

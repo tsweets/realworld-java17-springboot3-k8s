@@ -6,3 +6,5 @@
 - MockMVC
 - OAuth2/Spring Security
 - OpenAPI 3
+- Embedded H2 Database
+- Spring JPA Data

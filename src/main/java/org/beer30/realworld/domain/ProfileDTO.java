@@ -22,12 +22,21 @@ public class ProfileDTO {
   }
 }
      */
-    @Schema(description = "Username")
-    private String username;
-    @Schema(description = "User Biogragphy")
-    private String bio;
-    @Schema(description = "URL to Avatar")
-    private String image;
-    @Schema(description = "if the authenitcated user if following this usrname")
-    private Boolean following;
+
+    private Profile profile;
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static public class Profile {
+        @Schema(description = "Username")
+        private String username;
+        @Schema(description = "User Biogragphy")
+        private String bio;
+        @Schema(description = "URL to Avatar")
+        private String image;
+        @Schema(description = "if the authenitcated user if following this usrname")
+        private Boolean following;
+    }
 }

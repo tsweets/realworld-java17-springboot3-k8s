@@ -2,6 +2,7 @@ package org.beer30.realworld.controller;
 
 import com.github.javafaker.Faker;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.beer30.realworld.domain.UserDTO;
 import org.beer30.realworld.domain.UserLoginDTO;
 import org.beer30.realworld.domain.UserRegistrationDTO;
@@ -31,15 +32,15 @@ public class ControllerTestUtils {
 
     public static Article createTestArticle(ArticleService articleService, User author) {
         Faker faker = new Faker();
-
+        String key = RandomStringUtils.randomAlphabetic(4);
         Article article = new Article();
-        article.setTitle(faker.book().title());
+        article.setTitle(faker.book().title() + key);
         article.setDescription(faker.rickAndMorty().quote());
         article.setBody(faker.lorem().paragraph(5));
         List<Tag> tagList = new ArrayList<>();
-        tagList.add(Tag.builder().tag(faker.lorem().word() + "_1").build());
-        tagList.add(Tag.builder().tag(faker.lorem().word() + "_2").build());
-        tagList.add(Tag.builder().tag(faker.lorem().word() + "_3").build());
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_1_" + key).build());
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_2_" + key).build());
+        tagList.add(Tag.builder().tag(faker.lorem().word() + "_3_" + key).build());
         article.setTagList(tagList);
         return articleService.createArticle(article, author);
     }

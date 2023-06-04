@@ -164,8 +164,12 @@ public class CommentController {
             throw new RuntimeException(); // TODO need custom exception
         }
 
-        Article article = articleService.findArticleBySlug(slug);
+        //  Article article = articleService.findArticleBySlug(slug);
         Comment commentToDelete = commentService.findComment(id);
+        if (commentToDelete == null) {
+            log.error("No Comment Found");
+            throw new RuntimeException();
+        }
         commentService.deleteComment(commentToDelete);
     }
 

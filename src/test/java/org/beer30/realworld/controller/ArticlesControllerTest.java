@@ -320,7 +320,7 @@ public class ArticlesControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.articlesCount").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.articlesCount").isNumber())
                 .andReturn();
         Assert.assertNotNull(resultGetAllArticles);
 

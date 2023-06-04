@@ -70,6 +70,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/articles/{slug}/comments/{id}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/articles/{slug}/favorite").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/articles/{slug}/favorite").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/tags").permitAll()
+
                         .anyRequest().denyAll()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

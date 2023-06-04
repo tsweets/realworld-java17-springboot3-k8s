@@ -103,12 +103,12 @@ public class ProfileControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(pUserName))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.profile.username").value(pUserName))
                 .andReturn();
 
         ProfileDTO profileDTO = gson.fromJson(result.getResponse().getContentAsString(),ProfileDTO.class);
         Assert.assertNotNull(profileDTO);
-        Assert.assertEquals(pBio, profileDTO.getBio());
+        Assert.assertEquals(pBio, profileDTO.getProfile().getBio());
 
         System.out.println("Profile: " + profileDTO);
 
@@ -161,13 +161,13 @@ public class ProfileControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
 
-        ProfileDTO profileDTO = gson.fromJson(result.getResponse().getContentAsString(),ProfileDTO.class);
+        ProfileDTO profileDTO = gson.fromJson(result.getResponse().getContentAsString(), ProfileDTO.class);
         Assert.assertNotNull(profileDTO);
-        Assert.assertEquals(pBio, profileDTO.getBio());
+        Assert.assertEquals(pBio, profileDTO.getProfile().getBio());
 
         System.out.println("Profile: " + profileDTO);
-        Assert.assertEquals(true,profileDTO.getFollowing());
-        Assert.assertEquals(pUserName, profileDTO.getUsername());
+        Assert.assertEquals(true, profileDTO.getProfile().getFollowing());
+        Assert.assertEquals(pUserName, profileDTO.getProfile().getUsername());
 
         // Now un-follow that chap
         MvcResult resultUnfollow = this.mockMvc.perform(MockMvcRequestBuilders.delete("/api/profiles/{puser}/follow", pUserName)
@@ -177,13 +177,12 @@ public class ProfileControllerTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andReturn();
 
-        ProfileDTO profileDTOUnfollowed = gson.fromJson(resultUnfollow.getResponse().getContentAsString(),ProfileDTO.class);
+        ProfileDTO profileDTOUnfollowed = gson.fromJson(resultUnfollow.getResponse().getContentAsString(), ProfileDTO.class);
         Assert.assertNotNull(profileDTOUnfollowed);
 
         System.out.println("Profile: " + profileDTOUnfollowed);
-        Assert.assertEquals(false,profileDTOUnfollowed.getFollowing());
-        Assert.assertEquals(pUserName, profileDTOUnfollowed.getUsername());
-
+        Assert.assertEquals(false, profileDTOUnfollowed.getProfile().getFollowing());
+        Assert.assertEquals(pUserName, profileDTOUnfollowed.getProfile().getUsername());
 
 
     }
