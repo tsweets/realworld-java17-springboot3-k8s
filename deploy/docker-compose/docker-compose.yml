@@ -1,0 +1,29 @@
+version: '3.5'
+# secrets:
+#   my_secret:
+#     file: ./secrets.txt
+
+services:
+  realworld-backend:
+    image: tsweets/realworld-backend:latest
+    container_name: realworld-backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # networks:
+    #    proxy:
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      #- SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - ./data/config.yml:/config.yml:ro
+      # - ./data/logs:/var/log/realworld-backend
+
+# networks:
+#   proxy:
+#     name: proxy
+#     external: true

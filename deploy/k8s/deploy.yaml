@@ -1,0 +1,43 @@
+#
+# To deploy:
+#
+# kubectl apply -f deploy.yaml
+# Run API tests
+# APIURL=http://localhost:30001/api ./run-api-tests.sh
+#
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realworld-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: realworld-backend
+  template:
+    metadata:
+      labels:
+        app: realworld-backend
+    spec:
+      containers: 
+      - name: realworld-backend
+        image: tsweets/realworld-backend:latest
+        imagePullPolicy: Never
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "dev"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realworld-backend
+spec:
+  selector:
+    app: realworld-backend
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30001
